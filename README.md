@@ -160,6 +160,8 @@ Factory methods can either be specified in an interface and implemented by child
 
 Factory Method Pattern "Define an interface for creating an object, but let subclasses decide which class to instantiate. The Factory method lets a class defer instantiation it uses to subclasses."
 
+![alt text](image-4.png)
+
 
 Creating an object often requires complex processes not appropriate to include within a composing object. The object's creation may lead to a significant duplication of code, may require information not accessible to the composing object, may not provide a sufficient level of abstraction, or may otherwise not be part of the composing object's concerns. The factory method design pattern handles these problems by defining a separate method for creating the objects, which subclasses can then override to specify the derived type of product that will be created. 
 
@@ -365,10 +367,420 @@ class GenerateBill{
     }//end of GenerateBill class.
 ```
 
+similar example :: https://www.tutorialspoint.com/design_pattern/factory_pattern.htm
 
 
 ## Abstract Factory Pattern
 
+The Abstract factory pattern in software engineering is a creational design pattern that provides a way to create families of related objects without imposing their concrete classes, by encapsulating a group of individual factories that have a common theme without specifying their concrete classes.
+
+`Abstract factory pattern define as "an interface for creating families of related or dependent objects without specifying their concrete classes."`
+
+That means Abstract Factory lets a class returns a factory of classes. So, this is the reason that Abstract Factory Pattern is one level higher than the Factory Pattern.
+
+An Abstract Factory Pattern is also known as `Kit`. 
+
+![alt text](image-7.png)
+
+According to this pattern, a client software component creates a concrete implementation of the abstract factory and then uses the generic interface of the factory to create the concrete objects that are part of the family.
+
+The client does not know which concrete objects it receives from each of these internal factories, as it uses only the generic interfaces of their products.
+
+This pattern separates the details of implementation of a set of objects from their general usage and relies on object composition, as object creation is implemented in methods exposed in the factory interface.
+
+
+
+### When Abstract Factory Pattern can be apply ?
+
+- When the system needs to be independent of how its object are created, composed, and represented.
+- When the family of related objects has to be used together, then this constraint needs to be enforced.
+- When you want to provide a library of objects that does not show implementations and only reveals interfaces.
+- When the system needs to be configured with one of a multiple family of objects.
+
+
+
+### Which Problems Abstract Factory Pattern Solves ?
+
+Creating objects directly within the class that requires the objects is inflexible. Doing so commits the class to particular objects and makes it impossible to change the instantiation later without changing the class. It prevents the class from being reusable if other objects are required, and it makes the class difficult to test because real objects cannot be replaced with mock objects. 
+
+A factory is the location of a concrete class in the code at which objects are constructed. Implementation of the pattern intends to insulate the creation of objects from their usage and to create families of related objects without depending on their concrete classes. This allows for new derived types to be introduced with no change to the code that uses the base class. 
+
+It may be used to solve problems such as:
+
+- How can an application be independent of how its objects are created?
+- How can a class be independent of how the objects that it requires are created?
+- How can families of related or dependent objects be created?
+
+### How Such Problems Abstract Factory Pattern Solves ?
+
+This makes a class independent of how its objects are created. A class may be configured with a factory object, which it uses to create objects, and the factory object can be exchanged at runtime.
+
+- Encapsulate object creation in a separate (factory) object by defining and implementing an interface for creating objects.
+- Delegate object creation to a factory object instead of creating objects directly. 
+
+
+
+### Why Abstract Factory Pattern ?
+
+Abstract Factory is a very central design pattern for `Dependency Injection (DI)`.
+
+Here's a list of Stack Overflow questions where application of Abstract Factory has been accepted as the solution.
+
+https://stackoverflow.com/questions/2280170/why-do-we-need-abstract-factory-design-pattern
+
+
+### Why not Abstract Factory Pattern ?
+
+Use of this pattern enables interchangeable concrete implementations without changing the code that uses them, even at runtime. However, employment of this pattern, as with similar design patterns, may result in unnecessary complexity and extra work in the initial writing of code. Additionally, higher levels of separation and abstraction can result in systems that are more difficult to debug and maintain. 
+
+
+### Structure of Abstract Factory Pattern
+
+![alt text](image-5.png)
+
+
+In the above UML class diagram, the Client class that requires ProductA and ProductB objects does not instantiate the ProductA1 and ProductB1 classes directly. Instead, the Client refers to the AbstractFactory interface for creating objects, which makes the Client independent of how the objects are created (which concrete classes are instantiated). The Factory1 class implements the AbstractFactory interface by instantiating the ProductA1 and ProductB1 classes.
+
+The UML sequence diagram shows the runtime interactions. The Client object calls createProductA() on the Factory1 object, which creates and returns a ProductA1 object. Thereafter, the Client calls createProductB() on Factory1, which creates and returns a ProductB1 object. 
+
+- `Variants of Abstract Factory Pattern` 
+
+The original structure of the abstract factory pattern, as defined in 1994 in Design Patterns, is based on abstract classes for the abstract factory and the abstract products to be created. The concrete factories and products are classes that specialize the abstract classes using inheritance.
+
+A more recent structure of the pattern is based on interfaces that define the abstract factory and the abstract products to be created. This design uses native support for interfaces or protocols in mainstream programming languages to avoid inheritance. In this case, the concrete factories and products are classes that realize the interface by implementing it.
+
+
+### C++ Example
+
+```C++ 
+#include <iostream>
+
+enum Direction {North, South, East, West};
+
+class MapSite {
+public:
+  virtual void enter() = 0;
+  virtual ~MapSite() = default;
+};
+
+class Room : public MapSite {
+public:
+  Room() :roomNumber(0) {}
+  Room(int n) :roomNumber(n) {}
+  void setSide(Direction d, MapSite* ms) {
+    std::cout << "Room::setSide " << d << ' ' << ms << '\n';
+  }
+  virtual void enter() {}
+  Room(const Room&) = delete; // rule of three
+  Room& operator=(const Room&) = delete;
+private:
+  int roomNumber;
+};
+
+class Wall : public MapSite {
+public:
+  Wall() {}
+  virtual void enter() {}
+};
+
+class Door : public MapSite {
+public:
+  Door(Room* r1 = nullptr, Room* r2 = nullptr)
+    :room1(r1), room2(r2) {}
+  virtual void enter() {}
+  Door(const Door&) = delete; // rule of three
+  Door& operator=(const Door&) = delete;
+private:
+  Room* room1;
+  Room* room2;
+};
+
+class Maze {
+public:
+  void addRoom(Room* r) {
+    std::cout << "Maze::addRoom " << r << '\n';
+  }
+  Room* roomNo(int) const {
+    return nullptr;
+  }
+};
+
+class MazeFactory {
+public:
+  MazeFactory() = default;
+  virtual ~MazeFactory() = default;
+
+  virtual Maze* makeMaze() const {
+    return new Maze;
+  }
+  virtual Wall* makeWall() const {
+    return new Wall;
+  }
+  virtual Room* makeRoom(int n) const {
+    return new Room(n);
+  }
+  virtual Door* makeDoor(Room* r1, Room* r2) const {
+    return new Door(r1, r2);
+  }
+};
+
+// If createMaze is passed an object as a parameter to use to create rooms, walls, and doors, then you can change the classes of rooms, walls, and doors by passing a different parameter. This is an example of the Abstract Factory (99) pattern.
+
+class MazeGame {
+public:
+  Maze* createMaze(MazeFactory& factory) {
+    Maze* aMaze = factory.makeMaze();
+    Room* r1 = factory.makeRoom(1);
+    Room* r2 = factory.makeRoom(2);
+    Door* aDoor = factory.makeDoor(r1, r2);
+    aMaze->addRoom(r1);
+    aMaze->addRoom(r2);
+    r1->setSide(North, factory.makeWall());
+    r1->setSide(East, aDoor);
+    r1->setSide(South, factory.makeWall());
+    r1->setSide(West, factory.makeWall());
+    r2->setSide(North, factory.makeWall());
+    r2->setSide(East, factory.makeWall());
+    r2->setSide(South, factory.makeWall());
+    r2->setSide(West, aDoor);
+    return aMaze;
+  }
+};
+
+int main() {
+  MazeGame game;
+  MazeFactory factory;
+  game.createMaze(factory);
+}
+```
+//The program output is:
+
+```bash
+Maze::addRoom 0x1317ed0
+Maze::addRoom 0x1317ef0
+Room::setSide 0 0x1318340
+Room::setSide 2 0x1317f10
+Room::setSide 1 0x1318360
+Room::setSide 3 0x1318380
+Room::setSide 0 0x13183a0
+Room::setSide 2 0x13183c0
+Room::setSide 1 0x13183e0
+Room::setSide 3 0x1317f10
+```
+
+### Java Example
+
+We are going to create a `Bank interface` and a `Loan abstract class` as well as their sub-classes.
+Then we will create `AbstractFactory` class as next step.
+Then after we will create concrete classes, `BankFactory`, and `LoanFactory` that will extends `AbstractFactory` class
+After that, `AbstractFactoryPatternExample` (main function) class uses the `FactoryCreator` to get an object of `AbstractFactory` class. 
+
+![alt text](image-6.png)
+
+#1 Create a Bank interface
+
+```java
+import java.io.*;     
+interface Bank{  
+        String getBankName();  
+}
+```
+
+#2 Create concrete classes that implement the Bank interface. 
+
+    ```java
+class HDFC implements Bank{  
+             private final String BNAME;  
+             public HDFC(){  
+                    BNAME="HDFC BANK";  
+            }  
+            public String getBankName() {  
+                      return BNAME;  
+            }  
+}
+
+class ICICI implements Bank{  
+           private final String BNAME;  
+           ICICI(){  
+                    BNAME="ICICI BANK";  
+            }  
+            public String getBankName() {  
+                      return BNAME;  
+           }  
+}
+
+class SBI implements Bank{  
+      private final String BNAME;  
+      public SBI(){  
+                BNAME="SBI BANK";  
+        }  
+       public String getBankName(){  
+                  return BNAME;  
+       }  
+}
+```
+
+#3 Create the Loan abstract class.
+
+```java
+abstract class Loan{  
+   protected double rate;  
+   abstract void getInterestRate(double rate);  
+   public void calculateLoanPayment(double loanamount, int years)  
+   {  
+        /* 
+              to calculate the monthly loan payment i.e. EMI   
+                            
+              rate=annual interest rate/12*100; 
+              n=number of monthly installments;            
+              1year=12 months. 
+              so, n=years*12; 
+ 
+            */  
+                
+         double EMI;  
+         int n;  
+  
+         n=years*12;  
+         rate=rate/1200;  
+         EMI=((rate*Math.pow((1+rate),n))/((Math.pow((1+rate),n))-1))*loanamount;  
+  
+System.out.println("your monthly EMI is "+ EMI +" for the amount"+loanamount+" you have borrowed");     
+ }  
+}// end of the Loan abstract class.
+```
+
+#4 Create concrete classes that extend the Loan abstract class.
+
+```java
+class HomeLoan extends Loan{  
+         public void getInterestRate(double r){  
+             rate=r;  
+        }  
+}//End of the HomeLoan class.  
+
+class BussinessLoan extends Loan{  
+    public void getInterestRate(double r){  
+          rate=r;  
+     }  
+  
+}//End of the BusssinessLoan class.
+
+class EducationLoan extends Loan{  
+     public void getInterestRate(double r){  
+       rate=r;  
+ }  
+}//End of the EducationLoan class.
+```
+
+#5 Create an abstract class (i.e AbstractFactory) to get the factories for Bank and Loan Objects.
+
+```java
+abstract class AbstractFactory{  
+  public abstract Bank getBank(String bank);  
+  public abstract Loan getLoan(String loan);  
+}
+```
+
+#6 Create the factory classes that inherit AbstractFactory class to generate the object of concrete class based on given information.
+
+```java
+class BankFactory extends AbstractFactory{  
+   public Bank getBank(String bank){  
+      if(bank == null){  
+         return null;  
+      }  
+      if(bank.equalsIgnoreCase("HDFC")){  
+         return new HDFC();  
+      } else if(bank.equalsIgnoreCase("ICICI")){  
+         return new ICICI();  
+      } else if(bank.equalsIgnoreCase("SBI")){  
+         return new SBI();  
+      }  
+      return null;  
+   }  
+  public Loan getLoan(String loan) {  
+      return null;  
+   }  
+}//End of the BankFactory class.
+
+class LoanFactory extends AbstractFactory{  
+           public Bank getBank(String bank){  
+                return null;  
+          }  
+        
+     public Loan getLoan(String loan){  
+      if(loan == null){  
+         return null;  
+      }  
+      if(loan.equalsIgnoreCase("Home")){  
+         return new HomeLoan();  
+      } else if(loan.equalsIgnoreCase("Business")){  
+         return new BussinessLoan();  
+      } else if(loan.equalsIgnoreCase("Education")){  
+         return new EducationLoan();  
+      }  
+      return null;  
+   }  
+     
+}
+```
+
+#7 Create a FactoryCreator class to get the factories by passing an information such as Bank or Loan.
+
+```java
+class FactoryCreator {  
+     public static AbstractFactory getFactory(String choice){  
+      if(choice.equalsIgnoreCase("Bank")){  
+         return new BankFactory();  
+      } else if(choice.equalsIgnoreCase("Loan")){  
+         return new LoanFactory();  
+      }  
+      return null;  
+   }  
+}//End of the FactoryCreator.
+```
+#8 Use the FactoryCreator to get AbstractFactory in order to get factories of concrete classes by passing an information such as type.
+
+```java
+import java.io.*;  
+class AbstractFactoryPatternExample {  
+          public static void main(String args[])throws IOException {  
+           
+          BufferedReader br=new BufferedReader(new InputStreamReader(System.in));  
+      
+          System.out.print("Enter the name of Bank from where you want to take loan amount: ");  
+          String bankName=br.readLine();  
+      
+    System.out.print("\n");  
+    System.out.print("Enter the type of loan e.g. home loan or business loan or education loan : ");  
+      
+    String loanName=br.readLine();  
+    AbstractFactory bankFactory = FactoryCreator.getFactory("Bank");  
+    Bank b=bankFactory.getBank(bankName);  
+      
+    System.out.print("\n");  
+    System.out.print("Enter the interest rate for "+b.getBankName()+ ": ");  
+      
+    double rate=Double.parseDouble(br.readLine());  
+    System.out.print("\n");  
+    System.out.print("Enter the loan amount you want to take: ");  
+      
+    double loanAmount=Double.parseDouble(br.readLine());  
+    System.out.print("\n");  
+    System.out.print("Enter the number of years to pay your entire loan amount: ");  
+    int years=Integer.parseInt(br.readLine());  
+      
+    System.out.print("\n");  
+    System.out.println("you are taking the loan from "+ b.getBankName());  
+      
+    AbstractFactory loanFactory = FactoryCreator.getFactory("Loan");  
+               Loan l=loanFactory.getLoan(loanName);  
+               l.getInterestRate(rate);  
+               l.calculateLoanPayment(loanAmount,years);  
+      }  
+}//End of the  AbstractFactoryPatternExample
+```   
 
 
 ## Builder Pattern
