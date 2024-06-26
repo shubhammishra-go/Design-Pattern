@@ -123,7 +123,7 @@ Below is a simple class diagram that most creational patterns have in common. No
 
 ## Examples of Creational Design Patterns
 
-There are 10 examples of creational design patterns exist:
+There are some 10 examples of creational design patterns exist may be exist more than that as these are patterns for common occuring problems in software engineering:
 
 
 - `Multiton:` Ensure a class has only named instances, and provide a global point of access to them.
@@ -145,5 +145,251 @@ There are 10 examples of creational design patterns exist:
 - `Dependency Injection pattern:` A class accepts the objects it requires from an injector instead of creating the objects directly. 
 
 - `Resource acquisition is initialization (RAII):` Ensure that resources are properly released by tying them to the lifespan of suitable objects. 
+
+
+## Factory Method Pattern
+
+Factory Method is a creational design pattern that `provides an interface or abstract class` for creating objects in a superclass, `but allows subclasses to alter the type of objects that will be created [IMP.]`. In other words  `subclasses are responsible to create the instance of the class.`
+
+The Factory Method Pattern is also known as `Virtual Constructor`.
+
+Factory method pattern is a design pattern that uses factory methods to deal with the problem of creating objects without having to specify their exact class. Rather than by calling a constructor, this is done by calling a factory method to create an object.
+
+
+Factory methods can either be specified in an interface and implemented by child classes, or implemented in a base class and optionally overridden by derived classes.
+
+Factory Method Pattern "Define an interface for creating an object, but let subclasses decide which class to instantiate. The Factory method lets a class defer instantiation it uses to subclasses."
+
+
+Creating an object often requires complex processes not appropriate to include within a composing object. The object's creation may lead to a significant duplication of code, may require information not accessible to the composing object, may not provide a sufficient level of abstraction, or may otherwise not be part of the composing object's concerns. The factory method design pattern handles these problems by defining a separate method for creating the objects, which subclasses can then override to specify the derived type of product that will be created. 
+
+
+The factory method pattern relies on inheritance, as object creation is delegated to subclasses that implement the factory method to create objects.
+
+
+### Which Problems Factory Method Pattern Solves ?
+
+The Factory Method design pattern solves problems like:
+
+- How can an object be created so that subclasses can redefine its subsequent and distinct implementation?
+- How can an object's instantiation be deferred to a subclass?
+
+### How Such Problems Factory Method Pattern Solves ?
+
+The Factory Method design pattern describes how to solve such problems: 
+
+- Define a factory method within the superclass that defers the object's creation to a subclass's factory method.
+- Create an object by calling a factory method instead of directly calling a constructor.
+
+This enables the writing of subclasses that can change the way an object is created (e.g. by redefining which class to instantiate).
+
+
+### Structure of Factory Method
+
+A sample UML class diagram for the Factory Method design pattern.
+
+![alt text](image-2.png)
+
+In the above UML class diagram, the Creator class that requires a Product object does not instantiate the Product1 class directly. Instead, the Creator refers to a separate factoryMethod() to create a product object, which makes the Creator independent of which concrete class is instantiated. Subclasses of Creator can redefine which class to instantiate. In this example, the Creator1 subclass implements the abstract factoryMethod() by instantiating the Product1 class. 
+
+
+
+### Why Factory Method Pattern ?
+
+The factory method pattern can improve performance by reducing the number of object creations and dependencies, and by enabling lazy initialization and caching of objects. It can also enhance maintainability by decoupling the client code from the concrete classes, and by allowing you to add new types of objects without modifying the existing code. The factory method pattern can also support the principle of open-closed design, which states that software entities should be open for extension but closed for modification.
+
+
+Factory Method Pattern allows the sub-classes to choose the type of objects to create.
+
+It promotes the `loose-coupling` by eliminating the need to bind application-specific classes into the code. That means the code interacts solely with the resultant interface or abstract class, so that it will work with any classes that implement that interface or that extends that abstract class.
+
+
+### Why not Factory Method Pattern ?
+
+The factory method pattern can also introduce some drawbacks that can affect performance and maintainability. For example, it can increase the complexity and size of the code, as you need to create a separate factory class or method for each type of object. It can also introduce an extra level of abstraction and indirection, which can make the code harder to understand and debug. Moreover, it can create tight coupling between the factory and the concrete classes, which can make the code less flexible and testable.
+
+
+### C++ Example
+
+```C++ 
+#include <iostream>
+#include <memory>
+
+enum ProductId {MINE, YOURS};
+
+// defines the interface of objects the factory method creates.
+class Product {
+public:
+  virtual void print() = 0;
+  virtual ~Product() = default;
+};
+
+// implements the Product interface.
+class ConcreteProductMINE: public Product {
+public:
+  void print() {
+    std::cout << "this=" << this << " print MINE\n";
+  }
+};
+
+// implements the Product interface.
+class ConcreteProductYOURS: public Product {
+public:
+  void print() {
+    std::cout << "this=" << this << " print YOURS\n";
+  }
+};
+
+// declares the factory method, which returns an object of type Product.
+class Creator {
+public:
+  virtual std::unique_ptr<Product> create(ProductId id) {
+    if (ProductId::MINE == id) return std::make_unique<ConcreteProductMINE>();
+    if (ProductId::YOURS == id) return std::make_unique<ConcreteProductYOURS>();
+    // repeat for remaining products...
+
+    return nullptr;
+  }
+  virtual ~Creator() = default;
+};
+
+int main() {
+  // The unique_ptr prevent memory leaks.
+  std::unique_ptr<Creator> creator = std::make_unique<Creator>();
+  std::unique_ptr<Product> product = creator->create(ProductId::MINE);
+  product->print();
+
+  product = creator->create(ProductId::YOURS);
+  product->print();
+}
+```
+
+// The program output is like 
+
+```bash
+this=0x6e5e90 print MINE
+this=0x6e62c0 print YOURS
+```
+
+
+### JAVA Example
+
+![alt text](image-3.png)
+
+#1 Create a Plan abstract class.
+
+```JAVA
+import java.io.*;      
+    abstract class Plan{  
+             protected double rate;  
+             abstract void getRate();  
+       
+             public void calculateBill(int units){  
+                  System.out.println(units*rate);  
+              }  
+    }//end of Plan class.    
+```  
+
+#2 Create the concrete classes that extends Plan abstract class. 
+
+```JAVA
+class  DomesticPlan extends Plan{  
+        @override  
+         public void getRate(){  
+             rate=3.50;              
+        }  
+   }//end of DomesticPlan class.
+
+
+class  CommercialPlan extends Plan{  
+    @override   
+    public void getRate(){   
+        rate=7.50;  
+   }
+}   
+//end of CommercialPlan class. 
+
+class  InstitutionalPlan extends Plan{  
+    @override  
+    public void getRate(){   
+        rate=5.50;  
+   }
+}   
+//end of InstitutionalPlan class.
+
+```
+#3 Create a GetPlanFactory `to generate object of concrete classes based on given information`.
+
+```JAVA
+class GetPlanFactory{     
+   //use getPlan method to get object of type Plan   
+       public Plan getPlan(String planType){  
+            if(planType == null){  
+             return null;  
+            }  
+          if(planType.equalsIgnoreCase("DOMESTICPLAN")) {  
+                 return new DomesticPlan();  
+               }   
+           else if(planType.equalsIgnoreCase("COMMERCIALPLAN")){  
+                return new CommercialPlan();  
+            }   
+          else if(planType.equalsIgnoreCase("INSTITUTIONALPLAN")) {  
+                return new InstitutionalPlan();  
+          }  
+      return null;  
+   }  
+}//end of GetPlanFactory class.
+```
+#4 Generate Bill by using the GetPlanFactory to get the object of concrete classes by passing an information such as type of plan DOMESTICPLAN or COMMERCIALPLAN or INSTITUTIONALPLAN.
+
+```JAVA
+import java.io.*;    
+class GenerateBill{  
+    public static void main(String args[])throws IOException{  
+      GetPlanFactory planFactory = new GetPlanFactory();  
+        
+      System.out.print("Enter the name of plan for which the bill will be generated: ");  
+      BufferedReader br=new BufferedReader(new InputStreamReader(System.in));  
+  
+      String planName=br.readLine();  
+      System.out.print("Enter the number of units for bill will be calculated: ");  
+      int units=Integer.parseInt(br.readLine());  
+  
+      Plan p = planFactory.getPlan(planName);  
+      //call getRate() method and calculateBill()method of DomesticPaln.  
+  
+       System.out.print("Bill amount for "+planName+" of  "+units+" units is: ");  
+           p.getRate();  
+           p.calculateBill(units);  
+            }  
+    }//end of GenerateBill class.
+```
+
+
+
+## Abstract Factory Pattern
+
+
+
+## Builder Pattern
+
+
+## Prototype Pattern
+
+
+## Singleton Pattern
+
+## Object Pool Pattern
+
+## Dependency Injection Pattern
+
+## Lazy initialization Pattern
+
+## Resource acquisition is initialization (RAII) Pattern
+
+## Multiton Pattern
+
+
+
 
  
