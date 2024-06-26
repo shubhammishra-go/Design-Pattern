@@ -431,7 +431,7 @@ https://stackoverflow.com/questions/2280170/why-do-we-need-abstract-factory-desi
 
 ### Why not Abstract Factory Pattern ?
 
-Use of this pattern enables interchangeable concrete implementations without changing the code that uses them, even at runtime. However, employment of this pattern, as with similar design patterns, may result in unnecessary complexity and extra work in the initial writing of code. Additionally, higher levels of separation and abstraction can result in systems that are more difficult to debug and maintain. 
+Use of this pattern enables interchangeable concrete implementations without changing the code that uses them, even at runtime. However, employment of this pattern, as with similar design patterns, may result in `unnecessary complexity` and `extra work in the initial writing of code`. Additionally, higher levels of separation and abstraction can result in systems that are more `difficult to debug and maintain`. 
 
 
 ### Structure of Abstract Factory Pattern
@@ -588,7 +588,8 @@ interface Bank{
 
 #2 Create concrete classes that implement the Bank interface. 
 
-    ```java
+```java
+
 class HDFC implements Bank{  
              private final String BNAME;  
              public HDFC(){  
@@ -618,6 +619,7 @@ class SBI implements Bank{
                   return BNAME;  
        }  
 }
+
 ```
 
 #3 Create the Loan abstract class.
