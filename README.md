@@ -1046,6 +1046,332 @@ public class BuilderDemo{
 
 ## Prototype Pattern
 
+`Meaning of Prototype` ::: Prototype is an early sample, model, or release of a product built to test a concept or process.It is a term used in a variety of contexts, including semantics, design, electronics, and software programming.
+
+A prototype is generally used to evaluate a new design to enhance precision by system analysts and users.
+
+Prototyping serves to provide specifications for a real, working system rather than a theoretical one.
+
+![alt text](image-15.png)
+
+`Prototype pattern` is a creational design pattern in software development. It is used when the types of objects to create is determined by a `prototypical instance`, which is cloned to produce new objects.
+
+OR we can say, `cloning of an existing object instead of creating new one and can also be customized as per the requirement.`
+
+`As Copying an object “from the outside” isn’t always possible.`
+
+So, Prototype Pattern `lets us to copy existing objects without making your code dependent on their classes.`
+
+Prototype does not require subclassing, but it does require an "initialize" operation. Factory method requires subclassing, but does not require initialization
+
+This pattern is used to avoid subclasses of an object creator in the client application, like the factory method pattern does, and to avoid the inherent cost of creating a new object in the standard way (e.g., using the 'new' keyword) when it is prohibitively expensive for a given application.
+
+To implement the pattern, the client declares an abstract base class that specifies a pure virtual clone() method. Any class that needs a "polymorphic constructor" capability derives itself from the abstract base class, and implements the clone() operation.
+
+The client, instead of writing code that invokes the "new" operator on a hard-coded class name, calls the clone() method on the prototype, calls a factory method with a parameter designating the particular concrete derived class desired, or invokes the clone() method through some mechanism provided by another design pattern.
+
+
+The mitotic division of a cell — resulting in two identical cells — is an example of a prototype that plays an active role in copying itself and thus, demonstrates the Prototype pattern. When a cell splits, two cells of identical genotype result. In other words, the cell clones itself.
+
+### Why Prototype Pattern ?
+
+The pattern is useful to remove a bunch of boilerplate code, when the configuration required would be onerous. I think of Prototypes as a preset object, where you save a bunch of state as a new starting point.
+
+- It reduces the need of sub-classing.
+- It hides complexities of creating objects.
+- The clients can get new objects without knowing which type of object it will be.
+- It lets you add or remove objects at runtime.
+
+### Why not Prototype Pattern ?
+
+- Cloning complex objects that have circular references might be very tricky.
+
+i will let you know more once i get some more experince with this pattern...
+
+### Which Problems Prototype Pattern Solves ?
+
+Creating objects directly within the class that requires (uses) the objects is inflexible because it commits the class to particular objects at compile-time and makes it impossible to specify which objects to create at run-time.
+
+- How can objects be created so that which objects to create can be specified at run-time?
+- How can dynamically loaded classes be instantiated?
+
+### How Such Problems Prototype Pattern Solves ?
+
+- Define a `Prototype` object that returns a copy of itself.
+- Create new objects by copying a `Prototype` object.
+
+This enables configuration of a class with different `Prototype` objects, which are copied to create new objects, and even more, `Prototype` objects can be added and removed at run-time.
+
+### When Prototype Pattern can be apply ?
+
+- When the classes are instantiated at runtime.
+- When the cost of creating an object is expensive or complicated.
+- When you want to keep the number of classes in an application minimum.
+- When the client application needs to be unaware of object creation and representation.
+
+### Structure of Prototype Pattern
+
+![alt text](image-12.png)
+
+In the above `UML class diagram (LEFT)`, the `Client` class refers to the `Prototype` interface for cloning a `Product`. The `Product1` class implements the `Prototype` interface by creating a copy of itself.
+
+The `UML sequence diagram (RIGHT)` shows the run-time interactions: The `Client` object calls `clone()` on a prototype:`Product1` object, which creates and returns a copy of itself (a product:`Product1` object).
+
+### C++ Example
+
+```C++
+#include <iostream>
+
+enum Direction {North, South, East, West};
+
+class MapSite {
+public:
+  virtual void enter() = 0;
+  virtual MapSite* clone() const = 0;
+  virtual ~MapSite() = default;
+};
+
+class Room : public MapSite {
+public:
+  Room() :roomNumber(0) {}
+  Room(int n) :roomNumber(n) {}
+  void setSide(Direction d, MapSite* ms) {
+    std::cout << "Room::setSide " << d << ' ' << ms << '\n';
+  }
+  virtual void enter() {}
+  virtual Room* clone() const { // implements an operation for cloning itself.
+    return new Room(*this);
+  }
+  Room& operator=(const Room&) = delete;
+private:
+  int roomNumber;
+};
+
+class Wall : public MapSite {
+public:
+  Wall() {}
+  virtual void enter() {}
+  virtual Wall* clone() const {
+    return new Wall(*this);
+  }
+};
+
+class Door : public MapSite {
+public:
+  Door(Room* r1 = nullptr, Room* r2 = nullptr)
+    :room1(r1), room2(r2) {}
+  Door(const Door& other)
+    :room1(other.room1), room2(other.room2) {}
+  virtual void enter() {}
+  virtual Door* clone() const {
+    return new Door(*this);
+  }
+  virtual void initialize(Room* r1, Room* r2) {
+    room1 = r1;
+    room2 = r2;
+  }
+  Door& operator=(const Door&) = delete;
+private:
+  Room* room1;
+  Room* room2;
+};
+
+class Maze {
+public:
+  void addRoom(Room* r) {
+    std::cout << "Maze::addRoom " << r << '\n';
+  }
+  Room* roomNo(int) const {
+    return nullptr;
+  }
+  virtual Maze* clone() const {
+    return new Maze(*this);
+  }
+  virtual ~Maze() = default;
+};
+
+class MazeFactory {
+public:
+  MazeFactory() = default;
+  virtual ~MazeFactory() = default;
+
+  virtual Maze* makeMaze() const {
+    return new Maze;
+  }
+  virtual Wall* makeWall() const {
+    return new Wall;
+  }
+  virtual Room* makeRoom(int n) const {
+    return new Room(n);
+  }
+  virtual Door* makeDoor(Room* r1, Room* r2) const {
+    return new Door(r1, r2);
+  }
+};
+
+class MazePrototypeFactory : public MazeFactory {
+public:
+  MazePrototypeFactory(Maze* m, Wall* w, Room* r, Door* d)
+    :prototypeMaze(m), prototypeRoom(r),
+     prototypeWall(w), prototypeDoor(d) {}
+  virtual Maze* makeMaze() const {
+    // creates a new object by asking a prototype to clone itself.
+    return prototypeMaze->clone();
+  }
+  virtual Room* makeRoom(int) const {
+    return prototypeRoom->clone();
+  }
+  virtual Wall* makeWall() const {
+    return prototypeWall->clone();
+  }
+  virtual Door* makeDoor(Room* r1, Room* r2) const {
+    Door* door = prototypeDoor->clone();
+    door->initialize(r1, r2);
+    return door;
+  }
+  MazePrototypeFactory(const MazePrototypeFactory&) = delete;
+  MazePrototypeFactory& operator=(const MazePrototypeFactory&) = delete;
+private:
+  Maze* prototypeMaze;
+  Room* prototypeRoom;
+  Wall* prototypeWall;
+  Door* prototypeDoor;
+};
+
+// If createMaze is parameterized by various prototypical room, door, and wall objects, which it then copies and adds to the maze, then you can change the maze's composition by replacing these prototypical objects with different ones. This is an example of the Prototype (133) pattern.
+
+class MazeGame {
+public:
+  Maze* createMaze(MazePrototypeFactory& m) {
+    Maze* aMaze = m.makeMaze();
+    Room* r1 = m.makeRoom(1);
+    Room* r2 = m.makeRoom(2);
+    Door* theDoor = m.makeDoor(r1, r2);
+    aMaze->addRoom(r1);
+    aMaze->addRoom(r2);
+    r1->setSide(North, m.makeWall());
+    r1->setSide(East, theDoor);
+    r1->setSide(South, m.makeWall());
+    r1->setSide(West, m.makeWall());
+    r2->setSide(North, m.makeWall());
+    r2->setSide(East, m.makeWall());
+    r2->setSide(South, m.makeWall());
+    r2->setSide(West, theDoor);
+    return aMaze;
+  }
+};
+
+int main() {
+  MazeGame game;
+  MazePrototypeFactory simpleMazeFactory(new Maze, new Wall, new Room, new Door);
+  game.createMaze(simpleMazeFactory);
+}
+```
+//Output 
+
+```bash
+Maze::addRoom 0x1160f50
+Maze::addRoom 0x1160f70
+Room::setSide 0 0x11613c0
+Room::setSide 2 0x1160f90
+Room::setSide 1 0x11613e0
+Room::setSide 3 0x1161400
+Room::setSide 0 0x1161420
+Room::setSide 2 0x1161440
+Room::setSide 1 0x1161460
+Room::setSide 3 0x1160f90
+```
+
+### Java Example
+
+![alt text](image-14.png)
+
+- We are going to create an interface `Prototype` that contains a method `getClone()` of `Prototype` type.
+
+- Then, we create a concrete class `EmployeeRecord` which implements `Prototype` interface that does the cloning of `EmployeeRecord` object.
+
+- `PrototypeDemo` class will uses this concrete class `EmployeeRecord`.
+
+
+```java
+interface Prototype {  
+  
+     public Prototype getClone();  
+      
+}//End of Prototype interface.  
+
+class EmployeeRecord implements Prototype{  
+      
+   private int id;  
+   private String name, designation;  
+   private double salary;  
+   private String address;  
+      
+   public EmployeeRecord(){  
+            System.out.println("   Employee Records of Oracle Corporation ");  
+            System.out.println("---------------------------------------------");  
+            System.out.println("Eid"+"\t"+"Ename"+"\t"+"Edesignation"+"\t"+"Esalary"+"\t\t"+"Eaddress");  
+      
+} 
+
+public  EmployeeRecord(int id, String name, String designation, double salary, String address) {  
+          
+        this();  
+        this.id = id;  
+        this.name = name;  
+        this.designation = designation;  
+        this.salary = salary;  
+        this.address = address;  
+    }  
+      
+  public void showRecord(){  
+          
+        System.out.println(id+"\t"+name+"\t"+designation+"\t"+salary+"\t"+address);  
+   }  
+  
+    @Override  
+    public Prototype getClone() {  
+          
+        return new EmployeeRecord(id,name,designation,salary,address);  
+    }  
+}//End of EmployeeRecord class.  
+
+import java.io.BufferedReader;  
+import java.io.IOException;  
+import java.io.InputStreamReader;  
+
+class PrototypeDemo{  
+     public static void main(String[] args) throws IOException {  
+          
+        BufferedReader br =new BufferedReader(new InputStreamReader(System.in));  
+        System.out.print("Enter Employee Id: ");  
+        int eid=Integer.parseInt(br.readLine());  
+        System.out.print("\n");  
+          
+        System.out.print("Enter Employee Name: ");  
+        String ename=br.readLine();  
+        System.out.print("\n");  
+          
+        System.out.print("Enter Employee Designation: ");  
+        String edesignation=br.readLine();  
+        System.out.print("\n");  
+          
+        System.out.print("Enter Employee Address: ");  
+        String eaddress=br.readLine();  
+        System.out.print("\n");  
+        System.out.print("Enter Employee Salary: ");  
+        double esalary= Double.parseDouble(br.readLine());  
+        System.out.print("\n");  
+           
+        EmployeeRecord e1=new EmployeeRecord(eid,ename,edesignation,esalary,eaddress);  
+          
+        e1.showRecord();  
+        System.out.println("\n");  
+        EmployeeRecord e2=(EmployeeRecord) e1.getClone();  
+        e2.showRecord();  
+    }     
+}//End of the ProtoypeDemo class.
+```  
 
 ## Singleton Pattern
 
