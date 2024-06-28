@@ -787,6 +787,262 @@ class AbstractFactoryPatternExample {
 
 ## Builder Pattern
 
+Builder Pattern allows us to `"construct a complex object from simple objects using step-by-step approach".`
+
+It is mostly used `when object can't be created in single step` like in the `de-serialization of a complex object.`
+
+![alt text](image-8.png)
+
+The intent of the Builder design pattern is `to separate the construction of a complex object from its representation`. By doing so, `the same construction process can create different representations.`
+
+
+### Why Builder Pattern ?
+
+- Allows you to vary a product's internal representation.
+- Encapsulates code for construction and representation.
+- Provides control over the steps of the construction process.
+
+### Why not Builder Pattern ?
+
+- A distinct ConcreteBuilder must be created for each type of product.
+- Builder classes must be mutable.
+- May hamper/complicate dependency injection.
+
+
+### Which Problems Builder Pattern Solves ?
+
+The Builder design pattern solves problems like:
+
+- How can a class (the same construction process) create different representations of a complex object?
+- How can a class that includes creating a complex object be simplified?
+
+Creating and assembling the parts of a complex object directly within a class is inflexible. It commits the class to creating a particular representation of the complex object and makes it impossible to change the representation later independently from (without having to change) the class. 
+
+### How Such Problems Builder Pattern Solves ?
+
+The Builder design pattern describes how to solve such problems:
+
+- Encapsulate creating and assembling the parts of a complex object in a separate Builder object.
+- A class delegates object creation to a Builder object instead of creating the objects directly.
+
+A class (the same construction process) can delegate to different Builder objects to create different representations of a complex object. 
+
+
+### When Builder Pattern can be apply ?
+
+Use the Builder pattern when:
+
+- the algorithm for creating a complex object should be
+independent of the parts that make up the object and how
+they are assembled.
+
+- the construction process must allow different
+representations for the object that is constructed.
+
+
+### Structure of Builder Pattern
+
+![alt text](image-9.png)
+
+In the above UML class diagram, the `Director` class doesn't create and assemble the `ProductA1` and `ProductB1` objects directly. Instead, the `Director` refers to the `Builder interface` for building (creating and assembling) the parts of a complex object, which makes the `Director` independent of which concrete classes are instantiated (which representation is created). The `Builder1` class implements the `Builder` interface by creating and assembling the `ProductA1` and `ProductB1` objects. 
+
+The UML sequence diagram shows the run-time interactions: The `Director` object calls `buildPartA()` on the `Builder1` object, which creates and assembles the `ProductA1` object. Thereafter, the `Director` calls `buildPartB()` on `Builder1`, which creates and assembles the `ProductB1` object. 
+
+- Class diagram
+
+![alt text](image-10.png)
+
+`Builder :` Abstract interface for creating objects (product).
+
+`ConcreteBuilder :` Provides implementation for Builder. It is an object able to construct other objects. Constructs and assembles parts to build the objects.
+
+
+### C++ Example
+
+```C++
+#include <iostream>
+#include <memory>
+#include <string>
+
+class Product {
+public:
+    void set_part_a(std::string const& part_a) {
+        part_a_ = part_a;
+    }
+
+    void set_part_b(std::string const& part_b) {
+        part_b_ = part_b;
+    }
+
+    void set_part_c(std::string const& part_c) {
+        part_c_ = part_c;
+    }
+
+    void show() const {
+        std::cout << "Part A: " << part_a_ << "\n";
+        std::cout << "Part B: " << part_b_ << "\n";
+        std::cout << "Part C: " << part_c_ << "\n";
+    }
+
+private:
+    std::string part_a_;
+    std::string part_b_;
+    std::string part_c_;
+};
+
+class Builder {
+public:
+    virtual ~Builder() = default;
+
+    virtual void build_part_a() = 0;
+    virtual void build_part_b() = 0;
+    virtual void build_part_c() = 0;
+    virtual std::unique_ptr<Product> get_product() = 0;
+};
+
+class ConcreteBuilder: public Builder {
+public:
+    ConcreteBuilder(): product_{std::make_unique<Product>()} {}
+
+    void build_part_a() override {
+        product_->set_part_a("Part A");
+    }
+
+    void build_part_b() override {
+        product_->set_part_b("Part B");
+    }
+
+    void build_part_c() override {
+        product_->set_part_c("Part C");
+    }
+
+    std::unique_ptr<Product> get_product() override {
+        return std::move(product_);
+    }
+
+private:
+    std::unique_ptr<Product> product_;
+};
+
+class Director {
+public:
+    void set_builder(std::shared_ptr<Builder> const& builder) {
+        builder_ = builder;
+    }
+
+    void construct() {
+        builder_->build_part_a();
+        builder_->build_part_b();
+        builder_->build_part_c();
+    }
+
+private:
+    std::shared_ptr<Builder> builder_;
+};
+
+int main() {
+    std::shared_ptr<ConcreteBuilder> builder = std::make_shared<ConcreteBuilder>();
+    std::shared_ptr<Director> director = std::make_shared<Director>();
+
+    director->set_builder(builder);
+   director->construct();
+
+    std::unique_ptr<Product> product = builder->get_product();
+    product->show();
+
+    return 0;
+}
+```
+
+### Java Example
+
+![alt text](image-11.png)
+
+
+```java
+
+public interface Packing {  
+  public String pack();  
+  public int price();  
+}  
+
+public abstract class CD implements Packing{  
+  public abstract String pack();  
+} 
+
+public abstract class Company extends CD{  
+  public abstract int price();  
+} 
+
+public class Sony extends Company{  
+    @Override  
+        public int price(){   
+                        return 20;  
+      }  
+    @Override  
+    public String pack(){  
+             return "Sony CD";  
+        }         
+}//End of the Sony class.
+
+
+public class Samsung extends Company {  
+        @Override  
+            public int price(){   
+                            return 15;  
+        }  
+        @Override  
+        public String pack(){  
+                 return "Samsung CD";  
+            }         
+}//End of the Samsung class.  
+
+
+import java.util.ArrayList;  
+import java.util.List;  
+public class CDType {  
+                 private List<Packing> items=new ArrayList<Packing>();  
+                 public void addItem(Packing packs) {    
+                        items.add(packs);  
+                 }  
+                 public void getCost(){  
+                  for (Packing packs : items) {  
+                            packs.price();  
+                  }   
+                 }  
+                 public void showItems(){  
+                  for (Packing packing : items){  
+                 System.out.print("CD name : "+packing.pack());  
+                 System.out.println(", Price : "+packing.price());  
+              }       
+              }     
+}//End of the CDType class.  
+
+
+public class CDBuilder {  
+                      public CDType buildSonyCD(){   
+                         CDType cds=new CDType();  
+                         cds.addItem(new Sony());  
+                         return cds;  
+                  }  
+                  public CDType buildSamsungCD(){  
+                 CDType cds=new CDType();  
+                 cds.addItem(new Samsung());  
+                 return cds;  
+                  }  
+}// End of the CDBuilder class.  
+
+public class BuilderDemo{  
+     public static void main(String args[]){  
+       CDBuilder cdBuilder=new CDBuilder();  
+       CDType cdType1=cdBuilder.buildSonyCD();  
+       cdType1.showItems();  
+      
+       CDType cdType2=cdBuilder.buildSamsungCD();  
+       cdType2.showItems();  
+     }  
+}
+```  
 
 ## Prototype Pattern
 
