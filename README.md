@@ -1375,6 +1375,449 @@ class PrototypeDemo{
 
 ## Singleton Pattern
 
+Singleton is a creational design pattern that lets us ensure that `a class has only one instance, while providing a global access point to this instance.`
+
+This pattern is useful when exactly one object is needed to coordinate actions across a system.
+Clients may not even realize that they’re working with the same object all the time.
+
+![alt text](image-13.png)
+
+More specifically, the singleton pattern allows objects to:
+
+- Ensure they only have one instance.
+- Provide easy access to that instance.
+- Control their instantiation (for example, hiding the constructors of a class).
+
+
+In other words, a class must ensure that only single instance should be created and single object can be used by all other classes.
+
+There are two forms of singleton design pattern
+
+- `Early Instantiation`: creation of instance at load time.Lazy Instantiation
+- `Lazy Instantiation`: creation of instance when required.
+
+
+### Why Singleton Pattern ?
+
+- Saves memory because object is not created at each request. Only single instance is reused again and again.
+
+- Singletons are often preferred to global variables because they do not pollute the global namespace (or their containing namespace). Additionally, they permit lazy allocation and initialization, whereas global variables in many languages will always consume resources.
+
+- The singleton pattern can also be used as a basis for other design patterns, such as the abstract factory, factory method, builder and prototype patterns. Facade objects are also often singletons because only one facade object is required. 
+
+- Logging is a common real-world use case for singletons, because all objects that wish to log messages require a uniform point of access and conceptually write to a single source.
+
+### Why not Singleton Pattern ?
+
+- How many times a class is instantiated shouldn't be dictated by the class itself, but from an infrastructure that provides the single instance. Singleton makes it impossible to leave this decision to the infrastructure. It is a reusability issue, which shows up for instance in the unit tests, but also when the infrastructure tries to provide another instance for a certain purpose.
+
+(E.g. there is only one database connection. But for importing data from another database, it needs another connection. If the database access service would be a singleton, it is impossible to open another connection.)
+
+-  The pattern requires special treatment in a multithreaded environment so that multiple threads won’t create a singleton object several times.
+
+- Singletons are misused and abused by less capable programmers and so everything becomes a singleton and you see code littered with Class::get_instance() references. Generally speaking there are only one or two resources (like a database connection for example) that qualify for use of the Singleton pattern.
+
+- Singletons are essentially static classes, relying on one or more static methods and properties. All things static present real, tangible problems when you try to do Unit Testing because they represent dead ends in your code that cannot be mocked or stubbed. As a result, when you test a class that relies on a Singleton (or any other static method or class) you are not only testing that class but also the static method or class.
+
+- Singleton to be an anti-pattern that introduces global state into an application, often unnecessarily. This introduces a potential dependency on the singleton by other objects, requiring analysis of implementation details to determine whether a dependency actually exists.This increased coupling can introduce difficulties with unit testing. In turn, this places restrictions on any abstraction that uses the singleton, such as preventing concurrent use of multiple instances.
+
+- Singletons also violate the `single-responsibility principle` because they are responsible for enforcing their own uniqueness along with performing their normal functions.
+
+
+### Which Problems Singleton Pattern Solves ?
+
+### How Such Problems Singleton Pattern Solves ?
+
+### When Singleton Pattern can be apply ?
+
+Singleton pattern is mostly used in `multi-threaded` and `database applications`. It is used in `logging`, `caching`, `thread pools`, `configuration settings` etc.
+
+### Structure of Singleton Pattern
+
+![alt text](image-17.png)
+
+The `Singleton` class declares the static method `getInstance` that returns the same instance of its own class.
+
+The Singleton’s constructor should be hidden from the client code. Calling the getInstance method should be the only way of getting the Singleton object.
+
+
+Implementations of the singleton pattern ensure that only one instance of the singleton class ever exists and typically provide global access to that instance. 
+
+Typically, this is accomplished by:
+
+- Declaring all constructors of the class to be private, which prevents it from being instantiated by other objects.
+- Providing a static method that returns a reference to the instance.
+
+The instance is usually stored as a private static variable; the instance is created when the variable is initialized, at some point before when the static method is first called. 
+
+
+### C++ Example
+
+```C++
+#include <iostream>
+
+class Singleton {
+public:
+  // defines an class operation that lets clients access its unique instance.
+  static Singleton& get() {
+    // may be responsible for creating its own unique instance.
+    if (nullptr == instance) instance = new Singleton;
+    return *instance;
+  }
+  Singleton(const Singleton&) = delete; // rule of three
+  Singleton& operator=(const Singleton&) = delete;
+  static void destruct() {
+    delete instance;
+    instance = nullptr;
+  }
+  // existing interface goes here
+  int getValue() {
+    return value;
+  }
+  void setValue(int value_) {
+    value = value_;
+  }
+private:
+  Singleton() = default; // no public constructor
+  ~Singleton() = default; // no public destructor
+  static Singleton* instance; // declaration class variable
+  int value;
+};
+
+Singleton* Singleton::instance = nullptr; // definition class variable
+
+int main() {
+  Singleton::get().setValue(42);
+  std::cout << "value=" << Singleton::get().getValue() << '\n';
+  Singleton::destruct();
+}
+```
+// Output
+
+```bash 
+value=42
+```
+
+### Early Instantiation of Singleton Pattern
+
+In Early Instantiation of Singleton Pattern, we create the instance of the class at the time of declaring the static data member, so instance of the class is created at the time of classloading. 
+
+```java
+class A{  
+ private static A obj=new A();//Early, instance will be created at load time  
+ private A(){}  
+   
+ public static A getA(){  
+  return obj;  
+ }  
+  
+ public void doSomething(){  
+ //write your code  
+ }  
+}
+```
+
+### Lazy Instantiation of Singleton Pattern
+
+A singleton implementation may use lazy initialization in which the instance is created when the static method is first invoked. In `multithreaded programs`, this can cause race conditions that result in the creation of multiple instances. The following Java 5+ example is a thread-safe implementation, using lazy initialization with double-checked locking.
+
+In such case, we create the instance of the class in synchronized method or synchronized block, so instance of the class is created when required.
+
+```java
+public class Singleton {
+
+    private static volatile Singleton instance = null;
+
+    private Singleton() {}
+
+    public static Singleton getInstance() {
+        if (instance == null) {
+            synchronized(Singleton.class) {
+                if (instance == null) {
+                    instance = new Singleton();
+                }
+            }
+        }
+        return instance;
+    }
+}
+```
+
+### Java Example
+
+- We are going to create a JDBCSingleton class. This JDBCSingleton class contains its constructor as private and a private static instance jdbc of itself.
+- JDBCSingleton class provides a static method to get its static instance to the outside world. Now, JDBCSingletonDemo class will use JDBCSingleton class to get the JDBCSingleton object.
+
+![alt text](image-16.png)
+
+`Assumption`: you have created a table userdata that has three fields uid, uname and upassword in mysql database. Database name is ashwinirajput, username is root, password is ashwini.
+
+- File: `JDBCSingleton.java`
+
+```java
+    import java.io.BufferedReader;  
+    import java.io.IOException;  
+    import java.io.InputStreamReader;  
+    import java.sql.Connection;  
+    import java.sql.DriverManager;  
+    import java.sql.PreparedStatement;  
+    import java.sql.ResultSet;  
+    import java.sql.SQLException;  
+      
+    class JDBCSingleton {  
+         //Step 1  
+          // create a JDBCSingleton class.  
+         //static member holds only one instance of the JDBCSingleton class.  
+                 
+             private static JDBCSingleton jdbc;  
+               
+         //JDBCSingleton prevents the instantiation from any other class.  
+           private JDBCSingleton() {  }  
+            
+        //Now we are providing gloabal point of access.  
+             public static JDBCSingleton getInstance() {    
+                                         if (jdbc==null)  
+                                       {  
+                                                jdbc=new  JDBCSingleton();  
+                                       }  
+                             return jdbc;  
+                 }  
+                
+       // to get the connection from methods like insert, view etc.   
+              private static Connection getConnection()throws ClassNotFoundException, SQLException  
+              {  
+                    
+                  Connection con=null;  
+                  Class.forName("com.mysql.jdbc.Driver");  
+                  con= DriverManager.getConnection("jdbc:mysql://localhost:3306/ashwanirajput", "root", "ashwani");  
+                  return con;  
+                    
+              }  
+                
+     //to insert the record into the database   
+              public int insert(String name, String pass) throws SQLException  
+              {  
+                  Connection c=null;  
+                    
+                  PreparedStatement ps=null;  
+                    
+                  int recordCounter=0;  
+                    
+                  try {  
+                        
+                          c=this.getConnection();  
+                          ps=c.prepareStatement("insert into userdata(uname,upassword)values(?,?)");  
+                          ps.setString(1, name);  
+                          ps.setString(2, pass);  
+                          recordCounter=ps.executeUpdate();  
+                            
+                  } catch (Exception e) { e.printStackTrace(); } finally{  
+                        if (ps!=null){  
+                          ps.close();  
+                      }if(c!=null){  
+                          c.close();  
+                      }   
+                  }  
+                 return recordCounter;  
+              }  
+      
+    //to view the data from the database        
+          public  void view(String name) throws SQLException  
+          {  
+                    Connection con = null;  
+            PreparedStatement ps = null;  
+            ResultSet rs = null;  
+                      
+                    try {  
+                          
+                            con=this.getConnection();  
+                            ps=con.prepareStatement("select * from userdata where uname=?");  
+                            ps.setString(1, name);  
+                            rs=ps.executeQuery();  
+                            while (rs.next()) {  
+                                      System.out.println("Name= "+rs.getString(2)+"\t"+"Paasword= "+rs.getString(3));      
+                             
+                            }  
+                    
+              } catch (Exception e) { System.out.println(e);}  
+              finally{  
+                        if(rs!=null){  
+                            rs.close();  
+                        }if (ps!=null){  
+                          ps.close();  
+                      }if(con!=null){  
+                          con.close();  
+                      }   
+                    }  
+          }  
+            
+         // to update the password for the given username  
+          public int update(String name, String password) throws SQLException  {  
+                  Connection c=null;  
+                  PreparedStatement ps=null;  
+                    
+                  int recordCounter=0;  
+                  try {  
+                          c=this.getConnection();  
+                          ps=c.prepareStatement(" update userdata set upassword=? where uname='"+name+"' ");  
+                          ps.setString(1, password);  
+                          recordCounter=ps.executeUpdate();  
+                  } catch (Exception e) {  e.printStackTrace(); } finally{  
+                          
+                      if (ps!=null){  
+                          ps.close();  
+                      }if(c!=null){  
+                          c.close();  
+                      }   
+                   }  
+                 return recordCounter;  
+              }  
+                
+    // to delete the data from the database   
+             public int delete(int userid) throws SQLException{  
+                  Connection c=null;  
+                  PreparedStatement ps=null;  
+                  int recordCounter=0;  
+                  try {  
+                           c=this.getConnection();  
+                          ps=c.prepareStatement(" delete from userdata where uid='"+userid+"' ");  
+                          recordCounter=ps.executeUpdate();  
+                  } catch (Exception e) { e.printStackTrace(); }   
+                  finally{  
+                  if (ps!=null){  
+                          ps.close();  
+                 }if(c!=null){  
+                          c.close();  
+                  }   
+               }  
+                 return recordCounter;  
+              }  
+     }// End of JDBCSingleton class 
+     
+``` 
+- File: `JDBCSingletonDemo.java`
+
+ ```java
+    import java.io.BufferedReader;  
+    import java.io.IOException;  
+    import java.io.InputStreamReader;  
+    import java.sql.Connection;  
+    import java.sql.DriverManager;  
+    import java.sql.PreparedStatement;  
+    import java.sql.ResultSet;  
+    import java.sql.SQLException;  
+
+    class JDBCSingletonDemo{  
+        static int count=1;  
+        static int  choice;  
+        public static void main(String[] args) throws IOException {  
+              
+            JDBCSingleton jdbc= JDBCSingleton.getInstance();  
+              
+              
+            BufferedReader br=new BufferedReader(new InputStreamReader(System.in));  
+       do{   
+            System.out.println("DATABASE OPERATIONS");  
+            System.out.println(" --------------------- ");  
+            System.out.println(" 1. Insertion ");  
+            System.out.println(" 2. View      ");  
+            System.out.println(" 3. Delete    ");  
+            System.out.println(" 4. Update    ");  
+            System.out.println(" 5. Exit      ");  
+              
+            System.out.print("\n");  
+            System.out.print("Please enter the choice what you want to perform in the database: ");  
+              
+            choice=Integer.parseInt(br.readLine());  
+            switch(choice) {  
+                  
+               case 1:{  
+                        System.out.print("Enter the username you want to insert data into the database: ");  
+                        String username=br.readLine();  
+                        System.out.print("Enter the password you want to insert data into the database: ");  
+                        String password=br.readLine();  
+                          
+                        try {  
+                                int i= jdbc.insert(username, password);  
+                                if (i>0) {  
+                                System.out.println((count++) + " Data has been inserted successfully");  
+                                }else{  
+                                    System.out.println("Data has not been inserted ");      
+                                }  
+                              
+                            } catch (Exception e) {  
+                              System.out.println(e);  
+                            }  
+                          
+                         System.out.println("Press Enter key to continue...");  
+                         System.in.read();  
+                           
+                       }//End of case 1  
+                       break;  
+                case 2:{  
+                        System.out.print("Enter the username : ");  
+                        String username=br.readLine();  
+                   
+                        try  {  
+                                jdbc.view(username);  
+                             } catch (Exception e) {  
+                              System.out.println(e);  
+                            }  
+                         System.out.println("Press Enter key to continue...");  
+                         System.in.read();  
+                           
+                       }//End of case 2  
+                      break;  
+                 case 3:{  
+                         System.out.print("Enter the userid,  you want to delete: ");  
+                         int userid=Integer.parseInt(br.readLine());  
+                 
+                         try {  
+                                int i= jdbc.delete(userid);  
+                                if (i>0) {  
+                                System.out.println((count++) + " Data has been deleted successfully");  
+                                }else{  
+                                    System.out.println("Data has not been deleted");      
+                                }  
+                              
+                             } catch (Exception e) {  
+                              System.out.println(e);  
+                             }  
+                         System.out.println("Press Enter key to continue...");  
+                         System.in.read();  
+                           
+                        }//End of case 3  
+                       break;  
+                 case 4:{  
+                        System.out.print("Enter the username,  you want to update: ");  
+                        String username=br.readLine();  
+                        System.out.print("Enter the new password ");  
+                        String password=br.readLine();  
+                          
+                        try {  
+                                int i= jdbc.update(username, password);  
+                                if (i>0) {  
+                                System.out.println((count++) + " Data has been updated successfully");  
+                                }  
+                              
+                            } catch (Exception e) {  
+                              System.out.println(e);  
+                            }  
+                         System.out.println("Press Enter key to continue...");  
+                         System.in.read();  
+                          
+                       }// end of case 4  
+                     break;  
+                       
+                 default:  
+                         return;  
+            }  
+              
+           } while (choice!=4);   
+       }  
+    }    
+```  
+
 ## Object Pool Pattern
 
 ## Dependency Injection Pattern
