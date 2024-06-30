@@ -1820,6 +1820,276 @@ public class Singleton {
 
 ## Object Pool Pattern
 
+Object pool pattern is a creational design pattern that uses a set of initialized objects kept ready to use – a "pool" – rather than allocating and destroying them on demand. A client of the pool will request an object from the pool and perform operations on the returned object. When the client has finished, it returns the object to the pool rather than destroying it; this can be done manually or automatically. 
+
+`The Pooling pattern describes how expensive acquisition and release of resources can be avoided by recycling the resources no longer needed.`
+
+
+Object pools are primarily used for performance: in some circumstances, object pools significantly improve performance. Object pools complicate object lifetime, as objects obtained from and returned to a pool are not actually created or destroyed at this time, and thus require care in implementation. 
+
+![alt text](image-19.png)
+
+The object pool design pattern creates a set of objects that may be reused. When a new object is needed, it is requested from the pool. If a previously prepared object is available, it is returned immediately, avoiding the instantiation cost. If no objects are present in the pool, a new item is created and returned. When the object has been used and is no longer needed, it is returned to the pool, allowing it to be used again in the future without repeating the computationally expensive instantiation process. It is important to note that once an object has been used and returned, existing references will become invalid. 
+
+In some object pools the resources are limited, so a maximum number of objects is specified. If this number is reached and a new item is requested, an exception may be thrown, or the thread will be blocked until an object is released back into the pool. 
+
+The object pool design pattern is used in several places in the standard classes of the .NET Framework. One example is the .NET Framework Data Provider for SQL Server. As SQL Server database connections can be slow to create, a pool of connections is maintained. Closing a connection does not actually relinquish the link to SQL Server. Instead, the connection is held in a pool, from which it can be retrieved when requesting a new connection. This substantially increases the speed of making connections. 
+
+// To know more about pooling visit
+
+http://www.kircher-schwanninger.de/michael/publications/Pooling.pdf
+
+
+### Why Object Pool Pattern ?
+
+- Object pooling can offer a significant performance boost in situations where the cost of initializing a class instance is high and the rate of instantiation and destruction of a class is high – in this case objects can frequently be reused, and each reuse saves a significant amount of time. Object pooling requires resources – memory and possibly other resources, such as network sockets, and thus it is preferable that the number of instances in use at any one time is low, but this is not required. 
+
+- The pooled object is obtained in predictable time when creation of the new objects (especially over network) may take variable time. These benefits are mostly true for objects that are expensive with respect to time, such as database connections, socket connections, threads and large graphic objects like fonts or bitmaps. 
+
+- In other situations, simple object pooling (that hold no external resources, but only occupy memory) may not be efficient and could decrease performance. In case of simple memory pooling, the slab allocation memory management technique is more suited, as the only goal is to minimize the cost of memory allocation and deallocation by reducing fragmentation. 
+
+### Why not Object Pool Pattern ?
+
+- `More complicated code` ::: Some publications do not recommend using object pooling with certain languages, such as Java, especially for objects that only use memory and hold no external resources (such as connections to database). Opponents usually say that object allocation is relatively fast in modern languages with garbage collectors; while the operator new needs only ten instructions, the classic new - delete pair found in pooling designs requires hundreds of them as it does more complex work. Also, most garbage collectors scan "live" object references, and not the memory that these objects use for their content. This means that any number of "dead" objects without references can be discarded with little cost. In contrast, keeping a large number of "live" but unused objects increases the duration of garbage collection.
+
+- `Shared resource = locking; potential bottleneck` ::: If the pool is used by multiple threads, it may need the means to prevent parallel threads from trying to reuse the same object in parallel. This is not necessary if the pooled objects are immutable or otherwise thread-safe. 
+
+- `Data Leaks` ::: Inadequate resetting of objects can cause information leaks. Objects containing confidential data (e.g. a user's credit card numbers) must be cleared before being passed to new clients, otherwise, the data may be disclosed to an unauthorized party. 
+
+- `Stale state` ::: may not always be an issue; it becomes dangerous when it causes the object to behave unexpectedly. For example, an object representing authentication details may fail if the "successfully authenticated" flag is not reset before it is reused, since it indicates that a user is authenticated (possibly as someone else) when they are not. However, failing to reset a value used only for debugging, such as the identity of the last authentication server used, may pose no issues.
+
+// About Stale state
+
+Stale state is information in an object that does not reflect reality.
+
+Example: an object's members are filled with information from a database, but the underlying data in the database has changed since the object was filled.
+
+Dangerously stale state is stale state that might adversely affect the operation of a program, i.e. causing it to perform incorrectly due to invalid assumptions about the data's integrity.
+
+- `Violates GC(garbage collector)'s expectations of object lifetimes (most objects will be shortlived).` ::: Some publications do not recommend using object pooling with certain languages, such as Java, especially for objects that only use memory and hold no external resources (such as connections to database). Opponents usually say that object allocation is relatively fast in modern languages with garbage collectors; while the operator `new` needs only ten instructions, the classic `new` - `delete` pair found in pooling designs requires hundreds of them as it does more complex work. Also, most garbage collectors scan "live" object references, and not the memory that these objects use for their content. This means that any number of "dead" objects without references can be discarded with little cost. In contrast, keeping a large number of "live" but unused objects increases the duration of garbage collection.
+
+### Which Problems Object Pool Pattern Solves ?
+
+- `Network Connections` ::: Network connections may be managed using the Object Pool Design Pattern. It is preferable to reuse existing connections from a pool rather than having to create new ones every time one is required. This may enhance the application's functionality while lightening the burden on the network server.
+
+- `Database Connections` ::: Database connections using the Object Pool Design Pattern. It is preferable to reuse existing connections from a pool rather than having to create new ones every time a database connection is required. This can enhance application performance while lightening the burden on the database server.
+
+- `Thread Pools` ::: Developers working with Java programs should embrace the object pool design pattern as a means of managing thread pools efficiently. Rather than recreating each required thread as needed well-strategized usage relies on reusing pre-existing ones available in a designated work group. As a result, it encourages optimal application performance by keeping overheads low for threading creation and termination processes driven by this structure's efficiencies.
+
+- `Image Processing` ::: When tackling intensive image processing tasks in a Java based program implementing the Object Pool Design Pattern is worth considering. By utilizing pre-existing objects from a dedicated pool you can speed up your apps performance while reducing overall computing requirements for photo editing tasks.
+
+- `File System Operations` ::: If you're confronted with demanding image processing duties in a Java application, it's worthwhile to take into account applying the Object Pool Design Pattern. This technique makes use of existing items from a specific pool to enhance your program's output speed, and lessens the overall computational resources required for editing photographs.
+
+### How Such Problems Object Pool Pattern Solves ?
+
+...
+
+### When Object Pool Pattern can be apply ?
+
+- When it is necessary to work with numerous objects that are particularly expensive to instantiate and each object is only needed for a short period of time, the performance of an entire application may be adversely affected. An object pool design pattern may be deemed desirable in cases such as these.
+- The frequency of creating further objects is also high.
+- The number of objects in use is small.
+
+### Structure of Object Pool Pattern
+
+The UML diagram clearly shows that Object pool class is the singleton, because there is a getInstance() method that creates an object in the class. The method acquireReusable(), that is responsible for creating the object and saving it to the pool as a used object. The method releaseReusable(), which is responsible for releasing the object from the client, and inserting it into the objects available for use in Pula, but already unused, in practical examples this will be better explained.
+
+And the last method that is responsible for the maximum number of available objects in the pool.
+And of course, the client that calls the getInstance() method to create an Object Pool instance. Then, using the acquireReusable() method, it creates an object and writes it to the pool.
+
+![alt text](image-18.png)
+
+
+### Go Example
+
+The following Go code initializes a resource pool of a specified size (concurrent initialization) to avoid resource race issues through channels, and in the case of an empty pool, sets timeout processing to prevent clients from waiting too long. 
+
+```go
+// package pool
+package pool
+
+import (
+	"errors"
+	"log"
+	"math/rand"
+	"sync"
+	"time"
+)
+
+const getResMaxTime = 3 * time.Second
+
+var (
+	ErrPoolNotExist  = errors.New("pool not exist")
+	ErrGetResTimeout = errors.New("get resource time out")
+)
+
+//Resource
+type Resource struct {
+	resId int
+}
+
+//NewResource Simulate slow resource initialization creation
+// (e.g., TCP connection, SSL symmetric key acquisition, auth authentication are time-consuming)
+func NewResource(id int) *Resource {
+	time.Sleep(500 * time.Millisecond)
+	return &Resource{resId: id}
+}
+
+//Do Simulation resources are time consuming and random consumption is 0~400ms
+func (r *Resource) Do(workId int) {
+	time.Sleep(time.Duration(rand.Intn(5)) * 100 * time.Millisecond)
+	log.Printf("using resource #%d finished work %d finish\n", r.resId, workId)
+}
+
+//Pool based on Go channel implementation, to avoid resource race state problem
+type Pool chan *Resource
+
+//New a resource pool of the specified size
+// Resources are created concurrently to save resource initialization time
+func New(size int) Pool {
+	p := make(Pool, size)
+	wg := new(sync.WaitGroup)
+	wg.Add(size)
+	for i := 0; i < size; i++ {
+		go func(resId int) {
+			p <- NewResource(resId)
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	return p
+}
+
+//GetResource based on channel, resource race state is avoided and resource acquisition timeout is set for empty pool
+func (p Pool) GetResource() (r *Resource, err error) {
+	select {
+	case r := <-p:
+		return r, nil
+	case <-time.After(getResMaxTime):
+		return nil, ErrGetResTimeout
+	}
+}
+
+//GiveBackResource returns resources to the resource pool
+func (p Pool) GiveBackResource(r *Resource) error {
+	if p == nil {
+		return ErrPoolNotExist
+	}
+	p <- r
+	return nil
+}
+
+// package main
+package main
+
+import (
+	"github.com/tkstorm/go-design/creational/object-pool/pool"
+	"log"
+	"sync"
+)
+
+func main() {
+	// Initialize a pool of five resources,
+	// which can be adjusted to 1 or 10 to see the difference
+	size := 5
+	p := pool.New(size)
+
+	// Invokes a resource to do the id job
+	doWork := func(workId int, wg *sync.WaitGroup) {
+		defer wg.Done()
+		// Get the resource from the resource pool
+		res, err := p.GetResource()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		// Resources to return
+		defer p.GiveBackResource(res)
+		// Use resources to handle work
+		res.Do(workId)
+	}
+
+	// Simulate 100 concurrent processes to get resources from the asset pool
+	num := 100
+	wg := new(sync.WaitGroup)
+	wg.Add(num)
+	for i := 0; i < num; i++ {
+		go doWork(i, wg)
+	}
+	wg.Wait()
+}
+```
+
+### Java Example
+
+There are Different Algorithms of Object Pool Design.
+
+Using a list as its foundation, this technique facilitates building of a standard object pool that stores objects until they have been completely produced before inclusion in the collection. Whenever access to an item becomes necessary, the system peruses the pool in search possible options that can be used. If an option proves accessible then it will suffice; but if none do, then creating another new item becomes imperative.
+
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+
+public class ObjectPool<T> {
+   private List<T> pool;
+    
+   public ObjectPool(List<T> pool) {
+      this.pool = pool;
+   }
+    
+   public synchronized T getObject() {
+      if (pool.size() > 0) {
+         return pool.remove(0);
+      } else {
+         return createObject();
+      }
+   }
+    
+   public synchronized void releaseObject(T obj) {
+      pool.add(obj);
+   }
+    
+   private T createObject() {
+      T obj = null;
+      // create object code here
+      return obj;
+   }
+    
+   public static void main(String[] args) {
+      List<String> pool = new ArrayList<String>();
+      pool.add("Object 1");
+      pool.add("Object 2");
+        
+      ObjectPool<String> objectPool = new ObjectPool<String>(pool);
+        
+      String obj1 = objectPool.getObject();
+      String obj2 = objectPool.getObject();
+        
+      System.out.println("Object 1: " + obj1);
+      System.out.println("Object 2: " + obj2);
+        
+      objectPool.releaseObject(obj1);
+      objectPool.releaseObject(obj2);
+        
+      String obj3 = objectPool.getObject();
+      String obj4 = objectPool.getObject();
+        
+      System.out.println("Object 3: " + obj3);
+      System.out.println("Object 4: " + obj4);
+   }
+}
+```
+// Output
+```bash
+Object 1: Object 1
+Object 2: Object 2
+Object 3: Object 1
+Object 4: Object 2
+```
+
+
+
 ## Dependency Injection Pattern
 
 ## Lazy initialization Pattern
