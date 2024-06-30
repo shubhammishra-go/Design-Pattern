@@ -1892,10 +1892,10 @@ Dangerously stale state is stale state that might adversely affect the operation
 
 ### Structure of Object Pool Pattern
 
-The UML diagram clearly shows that Object pool class is the singleton, because there is a getInstance() method that creates an object in the class. The method acquireReusable(), that is responsible for creating the object and saving it to the pool as a used object. The method releaseReusable(), which is responsible for releasing the object from the client, and inserting it into the objects available for use in Pula, but already unused, in practical examples this will be better explained.
+The UML diagram clearly shows that Object pool class is the singleton, because there is a `getInstance()` method that creates an object in the class. The method `acquireReusable()`, that is responsible for creating the object and saving it to the pool as a used object. The method `releaseReusable()`, which is responsible for releasing the object from the client, and inserting it into the objects available for use in Pula, but already unused, in practical examples this will be better explained.
 
 And the last method that is responsible for the maximum number of available objects in the pool.
-And of course, the client that calls the getInstance() method to create an Object Pool instance. Then, using the acquireReusable() method, it creates an object and writes it to the pool.
+And of course, the client that calls the getInstance() method to create an Object Pool instance. Then, using the `acquireReusable()` method, it creates an object and writes it to the pool.
 
 ![alt text](image-18.png)
 
