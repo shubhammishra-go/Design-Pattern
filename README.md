@@ -2095,6 +2095,8 @@ Dependency injection is a programming technique in which an object or function r
 
 Dependency injection aims to separate the concerns of constructing objects and using them, leading to `loosely coupled programs`.
 
+![alt text](image-20.png)
+
 The pattern ensures that an object or function that wants to use a given service should not have to know how to construct those services. Instead, the receiving 'client' (object or function) is provided with its dependencies by external code (an 'injector'), which it is not aware of.
 
 Dependency injection is often used to keep code in-line with the `dependency inversion principle`.
@@ -2147,8 +2149,6 @@ public class Client {
 With interface injection, dependencies are completely ignorant of their clients, yet still send and receive references to new clients. 
 
 In this way, the dependencies become injectors. The key is that the injecting method is provided through an interface. 
-
-![alt text](image-20.png)
 
 An assembler is still needed to introduce the client and its dependencies. The assembler takes a reference to the client, casts it to the setter interface that sets that dependency, and passes it to that dependency object which in turn passes a reference to itself back to the client. 
 
