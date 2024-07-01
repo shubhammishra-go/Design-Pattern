@@ -2,7 +2,7 @@
 
 A design pattern is the re-usable form of a solution to a design problem. The idea was introduced by the architect `Christopher Alexander`.
 
-![alt text](image.png)
+![alt text](images/image.png)
 
 
 
@@ -112,7 +112,7 @@ Consider applying creational patterns when:
 
 Below is a simple class diagram that most creational patterns have in common. Note that different creational patterns require additional and different participated classes. 
 
-![alt text](image-1.png)
+![alt text](images/image-1.png)
 
 `Participants:`
 
@@ -160,7 +160,7 @@ Factory methods can either be specified in an interface and implemented by child
 
 Factory Method Pattern "Define an interface for creating an object, but let subclasses decide which class to instantiate. The Factory method lets a class defer instantiation it uses to subclasses."
 
-![alt text](image-4.png)
+![alt text](images/image-4.png)
 
 
 Creating an object often requires complex processes not appropriate to include within a composing object. The object's creation may lead to a significant duplication of code, may require information not accessible to the composing object, may not provide a sufficient level of abstraction, or may otherwise not be part of the composing object's concerns. The factory method design pattern handles these problems by defining a separate method for creating the objects, which subclasses can then override to specify the derived type of product that will be created. 
@@ -190,7 +190,7 @@ This enables the writing of subclasses that can change the way an object is crea
 
 A sample UML class diagram for the Factory Method design pattern.
 
-![alt text](image-2.png)
+![alt text](images/image-2.png)
 
 In the above UML class diagram, the Creator class that requires a Product object does not instantiate the Product1 class directly. Instead, the Creator refers to a separate factoryMethod() to create a product object, which makes the Creator independent of which concrete class is instantiated. Subclasses of Creator can redefine which class to instantiate. In this example, the Creator1 subclass implements the abstract factoryMethod() by instantiating the Product1 class. 
 
@@ -276,7 +276,7 @@ this=0x6e62c0 print YOURS
 
 ### JAVA Example
 
-![alt text](image-3.png)
+![alt text](images/image-3.png)
 
 #1 Create a Plan abstract class.
 
@@ -380,7 +380,7 @@ That means Abstract Factory lets a class returns a factory of classes. So, this 
 
 An Abstract Factory Pattern is also known as `Kit`. 
 
-![alt text](image-7.png)
+![alt text](images/image-7.png)
 
 According to this pattern, a client software component creates a concrete implementation of the abstract factory and then uses the generic interface of the factory to create the concrete objects that are part of the family.
 
@@ -436,7 +436,7 @@ Use of this pattern enables interchangeable concrete implementations without cha
 
 ### Structure of Abstract Factory Pattern
 
-![alt text](image-5.png)
+![alt text](images/image-5.png)
 
 
 In the above UML class diagram, the Client class that requires ProductA and ProductB objects does not instantiate the ProductA1 and ProductB1 classes directly. Instead, the Client refers to the AbstractFactory interface for creating objects, which makes the Client independent of how the objects are created (which concrete classes are instantiated). The Factory1 class implements the AbstractFactory interface by instantiating the ProductA1 and ProductB1 classes.
@@ -575,7 +575,7 @@ Then we will create `AbstractFactory` class as next step.
 Then after we will create concrete classes, `BankFactory`, and `LoanFactory` that will extends `AbstractFactory` class
 After that, `AbstractFactoryPatternExample` (main function) class uses the `FactoryCreator` to get an object of `AbstractFactory` class. 
 
-![alt text](image-6.png)
+![alt text](images/image-6.png)
 
 #1 Create a Bank interface
 
@@ -791,7 +791,7 @@ Builder Pattern allows us to `"construct a complex object from simple objects us
 
 It is mostly used `when object can't be created in single step` like in the `de-serialization of a complex object.`
 
-![alt text](image-8.png)
+![alt text](images/image-8.png)
 
 The intent of the Builder design pattern is `to separate the construction of a complex object from its representation`. By doing so, `the same construction process can create different representations.`
 
@@ -842,7 +842,7 @@ representations for the object that is constructed.
 
 ### Structure of Builder Pattern
 
-![alt text](image-9.png)
+![alt text](images/image-9.png)
 
 In the above UML class diagram, the `Director` class doesn't create and assemble the `ProductA1` and `ProductB1` objects directly. Instead, the `Director` refers to the `Builder interface` for building (creating and assembling) the parts of a complex object, which makes the `Director` independent of which concrete classes are instantiated (which representation is created). The `Builder1` class implements the `Builder` interface by creating and assembling the `ProductA1` and `ProductB1` objects. 
 
@@ -850,7 +850,7 @@ The UML sequence diagram shows the run-time interactions: The `Director` object 
 
 - Class diagram
 
-![alt text](image-10.png)
+![alt text](images/image-10.png)
 
 `Builder :` Abstract interface for creating objects (product).
 
@@ -956,7 +956,7 @@ int main() {
 
 ### Java Example
 
-![alt text](image-11.png)
+![alt text](images/image-11.png)
 
 
 ```java
@@ -1052,7 +1052,7 @@ A prototype is generally used to evaluate a new design to enhance precision by s
 
 Prototyping serves to provide specifications for a real, working system rather than a theoretical one.
 
-![alt text](image-15.png)
+![alt text](images/image-15.png)
 
 `Prototype pattern` is a creational design pattern in software development. It is used when the types of objects to create is determined by a `prototypical instance`, which is cloned to produce new objects.
 
@@ -1111,7 +1111,7 @@ This enables configuration of a class with different `Prototype` objects, which 
 
 ### Structure of Prototype Pattern
 
-![alt text](image-12.png)
+![alt text](images/image-12.png)
 
 In the above `UML class diagram (LEFT)`, the `Client` class refers to the `Prototype` interface for cloning a `Product`. The `Product1` class implements the `Prototype` interface by creating a copy of itself.
 
@@ -1284,7 +1284,7 @@ Room::setSide 3 0x1160f90
 
 ### Java Example
 
-![alt text](image-14.png)
+![alt text](images/image-14.png)
 
 - We are going to create an interface `Prototype` that contains a method `getClone()` of `Prototype` type.
 
@@ -1380,7 +1380,7 @@ Singleton is a creational design pattern that lets us ensure that `a class has o
 This pattern is useful when exactly one object is needed to coordinate actions across a system.
 Clients may not even realize that they’re working with the same object all the time.
 
-![alt text](image-13.png)
+![alt text](images/image-13.png)
 
 More specifically, the singleton pattern allows objects to:
 
@@ -1434,7 +1434,7 @@ Singleton pattern is mostly used in `multi-threaded` and `database applications`
 
 ### Structure of Singleton Pattern
 
-![alt text](image-17.png)
+![alt text](images/image-17.png)
 
 The `Singleton` class declares the static method `getInstance` that returns the same instance of its own class.
 
@@ -1548,7 +1548,7 @@ public class Singleton {
 - We are going to create a JDBCSingleton class. This JDBCSingleton class contains its constructor as private and a private static instance jdbc of itself.
 - JDBCSingleton class provides a static method to get its static instance to the outside world. Now, JDBCSingletonDemo class will use JDBCSingleton class to get the JDBCSingleton object.
 
-![alt text](image-16.png)
+![alt text](images/image-16.png)
 
 `Assumption`: you have created a table userdata that has three fields uid, uname and upassword in mysql database. Database name is ashwinirajput, username is root, password is ashwini.
 
@@ -1827,7 +1827,7 @@ Object pool pattern is a creational design pattern that uses a set of initialize
 
 Object pools are primarily used for performance: in some circumstances, object pools significantly improve performance. Object pools complicate object lifetime, as objects obtained from and returned to a pool are not actually created or destroyed at this time, and thus require care in implementation. 
 
-![alt text](image-19.png)
+![alt text](images/image-19.png)
 
 The object pool design pattern creates a set of objects that may be reused. When a new object is needed, it is requested from the pool. If a previously prepared object is available, it is returned immediately, avoiding the instantiation cost. If no objects are present in the pool, a new item is created and returned. When the object has been used and is no longer needed, it is returned to the pool, allowing it to be used again in the future without repeating the computationally expensive instantiation process. It is important to note that once an object has been used and returned, existing references will become invalid. 
 
@@ -1898,7 +1898,7 @@ The UML diagram clearly shows that Object pool class is the singleton, because t
 And the last method that is responsible for the maximum number of available objects in the pool.
 And of course, the client that calls the getInstance() method to create an Object Pool instance. Then, using the `acquireReusable()` method, it creates an object and writes it to the pool.
 
-![alt text](image-18.png)
+![alt text](images/image-18.png)
 
 
 ### Go Example
@@ -2095,7 +2095,7 @@ Dependency injection is a programming technique in which an object or function r
 
 Dependency injection aims to separate the concerns of constructing objects and using them, leading to `loosely coupled programs`.
 
-![alt text](image-20.png)
+![alt text](images/image-20.png)
 
 The pattern ensures that an object or function that wants to use a given service should not have to know how to construct those services. Instead, the receiving 'client' (object or function) is provided with its dependencies by external code (an 'injector'), which it is not aware of.
 
