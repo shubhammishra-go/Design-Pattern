@@ -2089,9 +2089,336 @@ Object 3: Object 1
 Object 4: Object 2
 ```
 
+## Dependency Injection
+
+Dependency injection is a programming technique in which an object or function receives other objects or functions that it requires, as opposed to creating them internally. 
+
+Dependency injection aims to separate the concerns of constructing objects and using them, leading to `loosely coupled programs`.
+
+The pattern ensures that an object or function that wants to use a given service should not have to know how to construct those services. Instead, the receiving 'client' (object or function) is provided with its dependencies by external code (an 'injector'), which it is not aware of.
+
+Dependency injection is often used to keep code in-line with the `dependency inversion principle`.
+
+In statically typed languages using dependency injection means a client only needs to declare the interfaces of the services it uses, rather than their concrete implementations, making it easier to change which services are used at runtime without recompiling. 
 
 
-## Dependency Injection Pattern
+### Types of Dependency Injection
+
+There are three main ways in which a client can receive injected services:
+
+- `Constructor injection`, where dependencies are provided through a client's class constructor.
+
+The most common form of dependency injection is for a class to request its dependencies through its constructor. This ensures the client is always in a valid state, since it cannot be instantiated without its necessary dependencies. 
+
+```java
+public class Client {
+    private Service service;
+
+    // The dependency is injected through a constructor.
+    Client(Service service) {
+        if (service == null) {
+            throw new IllegalArgumentException("service must not be null");
+        }
+        this.service = service;
+    }
+}
+```
+
+- `Setter injection`, where the client exposes a setter method which accepts the dependency.
+
+By accepting dependencies through a setter method, rather than a constructor, clients can allow injectors to manipulate their dependencies at any time. This offers flexibility, but makes it difficult to ensure that all dependencies are injected and valid before the client is used. 
+
+```java
+public class Client {
+    private Service service;
+
+    // The dependency is injected through a setter method.
+    public void setService(Service service) {
+        if (service == null) {
+            throw new IllegalArgumentException("service must not be null");
+        }
+        this.service = service;
+    }
+}
+```
+
+- `Interface injection`, where the dependency's interface provides an injector method that will inject the dependency into any client passed to it.
+
+With interface injection, dependencies are completely ignorant of their clients, yet still send and receive references to new clients. 
+
+In this way, the dependencies become injectors. The key is that the injecting method is provided through an interface. 
+
+![alt text](image-20.png)
+
+An assembler is still needed to introduce the client and its dependencies. The assembler takes a reference to the client, casts it to the setter interface that sets that dependency, and passes it to that dependency object which in turn passes a reference to itself back to the client. 
+
+For interface injection to have value, the dependency must do something in addition to simply passing back a reference to itself. This could be acting as a factory or sub-assembler to resolve other dependencies, thus abstracting some details from the main assembler. It could be reference-counting so that the dependency knows how many clients are using it. If the dependency maintains a collection of clients, it could later inject them all with a different instance of itself. 
+
+
+```java
+public interface ServiceSetter {
+    void setService(Service service);
+}
+
+public class Client implements ServiceSetter {
+    private Service service;
+
+    @Override
+    public void setService(Service service) {
+        if (service == null) {
+            throw new IllegalArgumentException("service must not be null");
+        }
+        this.service = service;
+    }
+}
+
+public class ServiceInjector {
+	private final Set<ServiceSetter> clients = new HashSet<>();
+
+	public void inject(ServiceSetter client) {
+		this.clients.add(client);
+		client.setService(new ExampleService());
+	}
+
+	public void switch() {
+		for (Client client : this.clients) {
+			client.setService(new AnotherExampleService());
+		}
+	}
+}
+
+public class ExampleService implements Service {}
+
+public class AnotherExampleService implements Service {}
+```
+
+The simplest way of implementing dependency injection is to manually arrange services and clients, typically done at the program's root, where execution begins. 
+
+```java
+public class Program {
+
+    public static void main(String[] args) {
+        // Build the service.
+        Service service = new ExampleService();
+
+        // Inject the service into the client.
+        Client client = new Client(service);
+
+        // Use the objects.
+        System.out.println(client.greet());
+    }	
+}
+```
+
+
+### Without Dependency Injection
+
+Dependency injections are useful to create loosely coupled programs. If Dependency Injection not exists in a class it will lead Hard coupling of software. so any changes made on one software peice of code will reflect on anyother hard coupled software. 
+
+In the following Java example, the `Client` class contains a `Service` member variable initialized in the constructor. The client directly constructs and controls which service it uses, creating a hard-coded dependency. 
+
+```java
+public class Client {
+    private Service service;
+
+    Client() {
+        // The dependency is hard-coded.
+        this.service = new ExampleService();
+    }
+}
+```
+
+
+### Why Dependency Injection Pattern ?
+
+- A basic benefit of dependency injection is `decreased coupling between classes and their dependencies`. By removing a client's knowledge of how its dependencies are implemented, programs become more reusable, testable and maintainable.
+
+This also results in `increased flexibility`: a client may act on anything that supports the intrinsic interface the client expects.
+
+More generally, dependency injection `reduces boilerplate code`, since all dependency creation is handled by a singular component.
+
+
+- Dependency injection allows `concurrent development`. Two developers can independently develop classes that use each other, while only needing to know the interface the classes will communicate through. Plugins are often developed by third-parties that never even talk to developers of the original product.
+
+
+- Many of dependency injection's benefits are particularly relevant to `unit-testing`.
+For example, dependency injection can be used to externalize a system's configuration details into configuration files, allowing the system to be reconfigured without recompilation. Separate configurations can be written for different situations that require different implementations of components.
+
+Similarly, because dependency injection does not require any change in code behavior, it can be applied to legacy code as a refactoring. This makes clients more independent and are easier to unit test in isolation, using stubs or mock objects, that simulate other objects not under test. 
+
+This ease of testing is often the first benefit noticed when using dependency injection.
+
+
+### Why not Dependency Injection Pattern ?
+
+Critics of dependency injection argue that it: 
+
+- Creates clients that demand configuration details, which can be onerous when obvious defaults are available.
+
+- Makes code difficult to trace because it separates behavior from construction.
+
+- Typically implemented with reflection or dynamic programming, hindering IDE automation.
+
+- Typically requires more upfront development effort.
+
+- Encourages dependence on a framework.
+
+### Which Problems Dependency Injection Pattern Solves ?
+
+Dependency injection makes implicit dependencies explicit and helps solve the following problems:
+
+- How can a class be independent from the creation of the objects it depends on?
+
+- How can an application, and the objects it uses support different configurations?
+
+
+### Go Example
+
+Go does not support classes and usually dependency injection is either abstracted by a dedicated library that utilizes reflection or generics (the latter being supported since Go 1.18 . A simpler example without using dependency injection libraries is illustrated by the following example of an MVC web application. 
+
+First, pass the necessary dependencies to a router and then from the router to the controllers: 
+
+```go
+package router
+
+import (
+	"database/sql"
+	"net/http"
+
+	"example/controllers/users"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog"
+)
+
+type RoutingHandler struct {
+	// passing the values by pointer further down the call stack
+	// means we won't create a new copy, saving memory
+	log    *zerolog.Logger
+	db     *sql.DB
+	cache  *redis.Client
+	router chi.Router
+}
+
+// connection, logger and cache initialized usually in the main function
+func NewRouter(
+	log *zerolog.Logger,
+	db *sql.DB,
+	cache *redis.Client,
+) (r *RoutingHandler) {
+	rtr := chi.NewRouter()
+
+	return &RoutingHandler{
+		log:    log,
+		db:     db,
+		cache:  cache,
+		router: rtr,
+	}
+}
+
+func (r *RoutingHandler) SetupUsersRoutes() {
+	uc := users.NewController(r.log, r.db, r.cache)
+
+	r.router.Get("/users/:name", func(w http.ResponseWriter, r *http.Request) {
+		uc.Get(w, r)
+	})
+}
+```
+
+Then, you can access the private fields of the struct in any method that is it's pointer receiver, without violating encapsulation. 
+
+```go
+package users
+
+import (
+	"database/sql"
+	"net/http"
+
+	"example/models"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog"
+)
+
+type Controller struct {
+	log     *zerolog.Logger
+	storage models.UserStorage
+	cache   *redis.Client
+}
+
+func NewController(log *zerolog.Logger, db *sql.DB, cache *redis.Client) *Controller {
+	return &Controller{
+		log:     log,
+		storage: models.NewUserStorage(db),
+		cache:   cache,
+	}
+}
+
+func (uc *Controller) Get(w http.ResponseWriter, r *http.Request) {
+	// note that we can also wrap logging in a middleware, this is for demonstration purposes
+	uc.log.Info().Msg("Getting user")
+
+	userParam := chi.URLParam(r, "name")
+
+	var user *models.User
+	// get the user from the cache
+	err := uc.cache.Get(r.Context(), userParam).Scan(&user)
+	if err != nil {
+		uc.log.Error().Err(err).Msg("Error getting user from cache. Retrieving from SQL storage")
+	}
+
+	user, err = uc.storage.Get(r.Context(), "johndoe")
+	if err != nil {
+		uc.log.Error().Err(err).Msg("Error getting user from SQL storage")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+```
+
+Finally you can use the database connection initialized in your main function at the data access layer: 
+
+```go
+package models
+
+import (
+"database/sql"
+"time"
+)
+
+type (
+	UserStorage struct {
+		conn *sql.DB
+	}
+
+	User struct {
+		Name     string `json:"name" db:"name,primarykey"`
+		JoinedAt time.Time `json:"joined_at" db:"joined_at"`
+		Email    string `json:"email" db:"email"`
+	}
+)
+
+func NewUserStorage(conn *sql.DB) *UserStorage {
+	return &UserStorage{
+		conn: conn,
+	}
+}
+
+func (us *UserStorage) Get(name string) (user *User, err error) {
+	// assuming 'name' is a unique key
+	query := "SELECT * FROM users WHERE name = $1"
+
+	if err := us.conn.QueryRow(query, name).Scan(&user); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+```
 
 ## Lazy initialization Pattern
 
