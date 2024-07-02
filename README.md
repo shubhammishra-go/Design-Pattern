@@ -2422,9 +2422,693 @@ func (us *UserStorage) Get(name string) (user *User, err error) {
 
 ## Lazy initialization Pattern
 
+Lazy initialization is the tactic of `delaying the creation of an object`, the calculation of a value, or some other expensive process until the first time it is needed. It is a kind of lazy evaluation that refers specifically to the instantiation of objects or other resources.
+
+This is typically accomplished by augmenting an accessor method (or property getter) to check whether a private member, acting as a cache, has already been initialized. If it has, it is returned straight away. If not, a new instance is created, placed into the member variable, and returned to the caller just-in-time for its first use. 
+
+If objects have properties that are rarely used, this can improve startup speed. Mean average program performance may be slightly worse in terms of memory (for the condition variables) and execution cycles (to check them), but the impact of object instantiation is spread in time ("amortized") rather than concentrated in the startup phase of a system, and thus median response times can be greatly improved. 
+
+In multithreaded code, access to lazy-initialized objects/state must be synchronized to guard against race conditions. 
+
+lazy initialization is often used together with a `factory method pattern`. This combines three ideas: 
+
+- Using a factory method to create instances of a class (factory method pattern).
+
+- Storing the instances in a map, and returning the same instance to each request for an instance with same parameters (multiton pattern).
+
+- Using lazy initialization to instantiate the object the first time it is requested (lazy initialization pattern).
+
+
+### When Lazy initialization Pattern can be apply ?
+
+Lazy Initialization is a performance optimization where you defer (potentially expensive) object creation until just before you actually need it.
+
+One good example is to not create a database connection up front, but only just before you need to get data from the database.
+
+The key reason for doing this is that (often) you can avoid creating the object completely if you never need it.
+
+
+### C++ Example
+
+```C++
+#include <iostream>
+#include <map>
+#include <string>
+
+class Fruit {
+ public:
+  static Fruit* GetFruit(const std::string& type);
+  static void PrintCurrentTypes();
+
+ private:
+  // Note: constructor private forcing one to use static |GetFruit|.
+  Fruit(const std::string& type) : type_(type) {}
+
+  static std::map<std::string, Fruit*> types;
+
+  std::string type_;
+};
+
+// static
+std::map<std::string, Fruit*> Fruit::types;
+
+// Lazy Factory method, gets the |Fruit| instance associated with a certain
+// |type|.  Creates new ones as needed.
+Fruit* Fruit::GetFruit(const std::string& type) {
+  auto [it, inserted] = types.emplace(type, nullptr);
+  if (inserted) {
+    it->second = new Fruit(type);
+  }
+  return it->second;
+}
+
+// For example purposes to see pattern in action.
+void Fruit::PrintCurrentTypes() {
+  std::cout << "Number of instances made = " << types.size() << std::endl;
+  for (const auto& [type, fruit] : types) {
+    std::cout << type << std::endl;
+  }
+  std::cout << std::endl;
+}
+
+int main() {
+  Fruit::GetFruit("Banana");
+  Fruit::PrintCurrentTypes();
+
+  Fruit::GetFruit("Apple");
+  Fruit::PrintCurrentTypes();
+
+  // Returns pre-existing instance from first time |Fruit| with "Banana" was
+  // created.
+  Fruit::GetFruit("Banana");
+  Fruit::PrintCurrentTypes();
+}
+```
+
+// OUTPUT:
+
+```bash
+Number of instances made = 1
+Banana
+
+Number of instances made = 2
+Apple
+Banana
+
+Number of instances made = 2
+Apple
+Banana
+```
+
+
+### Java Example
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+public class Program {
+
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        Fruit.getFruitByTypeName(FruitType.banana);
+        Fruit.showAll();
+        Fruit.getFruitByTypeName(FruitType.apple);
+        Fruit.showAll();
+        Fruit.getFruitByTypeName(FruitType.banana);
+        Fruit.showAll();
+    }
+}
+
+enum FruitType {
+    none,
+    apple,
+    banana,
+}
+
+class Fruit {
+
+    private static Map<FruitType, Fruit> types = new HashMap<>();
+    
+    /**
+     * Using a private constructor to force the use of the factory method.
+     * @param type
+     */
+    private Fruit(FruitType type) {
+    }
+    
+    /**
+     * Lazy Factory method, gets the Fruit instance associated with a certain
+     * type. Instantiates new ones as needed.
+     * @param type Any allowed fruit type, e.g. APPLE
+     * @return The Fruit instance associated with that type.
+     */
+    public static Fruit getFruitByTypeName(FruitType type) {
+        Fruit fruit;
+                // This has concurrency issues.  Here the read to types is not synchronized, 
+                // so types.put and types.containsKey might be called at the same time.
+                // Don't be surprised if the data is corrupted.
+        if (!types.containsKey(type)) {
+            // Lazy initialisation
+            fruit = new Fruit(type);
+            types.put(type, fruit);
+        } else {
+            // OK, it's available currently
+            fruit = types.get(type);
+        }
+        
+        return fruit;
+    }
+    
+    /**
+     * Lazy Factory method, gets the Fruit instance associated with a certain
+     * type. Instantiates new ones as needed. Uses double-checked locking 
+     * pattern for using in highly concurrent environments.
+     * @param type Any allowed fruit type, e.g. APPLE
+     * @return The Fruit instance associated with that type.
+     */
+    public static Fruit getFruitByTypeNameHighConcurrentVersion(FruitType type) {
+        if (!types.containsKey(type)) {
+            synchronized (types) {
+                // Check again, after having acquired the lock to make sure
+                // the instance was not created meanwhile by another thread
+                if (!types.containsKey(type)) {
+                    // Lazy initialisation
+                    types.put(type, new Fruit(type));
+                }
+            }
+        }
+        
+        return types.get(type);
+    }
+    
+    /**
+     * Displays all entered fruits.
+     */
+    public static void showAll() {
+        if (types.size() > 0) {
+ 
+           System.out.println("Number of instances made = " + types.size());
+            
+            for (Entry<FruitType, Fruit> entry : types.entrySet()) {
+                String fruit = entry.getKey().toString();
+                fruit = Character.toUpperCase(fruit.charAt(0)) + fruit.substring(1);
+                System.out.println(fruit);
+            }
+            
+            System.out.println();
+        }
+    }
+}
+```
+//Output
+
+```bash
+Number of instances made = 1
+Banana
+
+Number of instances made = 2
+Banana
+Apple
+
+Number of instances made = 2
+Banana
+Apple
+```
+
+
 ## Resource acquisition is initialization (RAII) Pattern
 
+Resource acquisition is initialization (RAII) is a `programming idiom` used in several object-oriented, statically typed programming languages to describe a particular language behavior.
+
+`"Resource acquisition is initialization" literally means is that when an object is constructed (initialized), it acquires some resource (such as a memory allocation or a lock). In other words, it says you should only ever acquire a resource, by initializing some object whose destructor will release it.`
+
+This is important to stress because it's a departure from C coding style, where you acquire resources by whatever means a particular API provides (for example `malloc()`, `accept()`, or `pthread_mutex_lock()`), and release them by explicitly calling the corresponding function (for example `free()`, `close()`, `pthread_mutex_unlock()`). The presence of exceptions in C++ makes this approach fairly unworkable. Even in C it results in some tedious code that every use of the API has to write out, and every user has to ensure that control always passes through that code after they're finished using the resource.
+
+But the important part of the pattern is that when the object is destroyed, it releases that resource. It doesn't actually matter whether you acquire the resource by initializing the object, or by doing something else with the object after it has been initialized. And people will still refer to an object as a "RAII object" when there are operations other than initialization that generate the resource(s) managed by the RAII object.
+
+So, don't worry too much about the "acquisition is initialization" in "RAII", because anyway it's slightly misleading.
+
+In RAII, holding a resource is a class invariant, and is tied to object lifetime. 
+
+Ensure efficient Java resource management by tying the resource lifecycle to object lifetime, utilizing the RAII pattern.
+
+`The principle that objects own resources is also known as "resource acquisition is initialization," or RAII.`
+
+Resource allocation (or acquisition) is done during object creation (specifically initialization), by the constructor, while resource deallocation (release) is done during object destruction (specifically finalization), by the destructor.
+
+In other words, resource acquisition must succeed for initialization to succeed. 
+
+Thus the resource is guaranteed to be held between when initialization finishes and finalization starts (holding the resources is a class invariant), and to be held only when the object is alive. 
+
+Thus if there are no object leaks, there are no resource leaks. 
+
+For example :::     In a car rental service, each car represents a resource. Using the RAII pattern, when a customer rents a car (acquires the resource), the car is marked as rented. When the customer returns the car (the object goes out of scope), the car is automatically made available for the next customer. This ensures that cars are properly managed and available without manual intervention for checking availability or returns.
+
+The RAII pattern allows for exception-safe resource management, ensuring robust handling of critical resources.
+
+### Why Resource acquisition is initialization (RAII) Pattern ?
+
+The advantages of RAII as a resource management technique are that it provides `encapsulation`, `exception safety (for stack resources)`, and `locality (it allows acquisition and release logic to be written next to each other)`.
+
+- `Encapsulation` is provided because resource management logic is defined once in the class, not at each call site.
+
+- `Exception safety` is provided for stack resources (resources that are released in the same scope as they are acquired) by tying the resource to the lifetime of a stack variable (a local variable declared in a given scope): if an exception is thrown, and proper exception handling is in place, the only code that will be executed when exiting the current scope are the destructors of objects declared in that scope.
+
+- `Locality of definition` is provided by writing the constructor and destructor definitions next to each other in the class definition. 
+
+
+Resource management therefore needs to be tied to the lifespan of suitable objects in order to gain automatic allocation and reclamation.
+
+Resources are acquired during initialization, when there is no chance of them being used before they are available, and released with the destruction of the same objects, which is guaranteed to take place even in case of errors.
+
+
+// RAII Comparasion with Java `finally` clause
+
+Comparing RAII with the `finally` construct used in Java, Stroustrup wrote that “In realistic systems, there are far more resource acquisitions than kinds of resources, so the 'resource acquisition is initialization' technique leads to less code than use of a 'finally' construct.”
+
+The `finally` clause is used in C#/Java `to handle resource disposal` in case of scope exit (either through a return or a thrown exception).
+
+
+### Why not Resource acquisition is initialization (RAII) Pattern ?
+
+RAII only works for resources acquired and released (directly or indirectly) by stack-allocated objects, where there is a well-defined static object lifetime.
+
+Heap-allocated objects which themselves acquire and release resources are common in many languages, including C++. RAII depends on heap-based objects to be implicitly or explicitly deleted along all possible execution paths, in order to trigger its resource-releasing destructor (or equivalent).
+
+This can be achieved by using `smart pointers` to manage all heap objects, with weak pointers for cyclically referenced objects. 
+
+- Jonathan Blow explained how use of RAII can cause `memory fragmentation` which in turn can cause cache misses and a 100 times or worse hit on performance.
+
+- In C++, `stack unwinding` is only guaranteed to occur if the exception is caught somewhere. This is because "If no matching handler is found in a program, the function terminate() is called; whether or not the stack is unwound before this call to terminate() is implementation-defined (15.5.1)." (C++03 standard, §15.3/9). This behavior is usually acceptable, since the operating system releases remaining resources like memory, files, sockets, etc. at program termination.
+
+
+### Usages of Resource acquisition is initialization (RAII) Pattern
+
+- The RAII design is often used for controlling mutex locks in `multi-threaded applications`. In that use, the object releases the lock when destroyed.
+
+// Without RAII 
+
+In this scenario the potential for deadlock would be high and the logic to lock the mutex would be far from the logic to unlock it. 
+
+// With RAII
+
+the code that locks the mutex essentially includes the logic that the lock will be released when execution leaves the scope of the RAII object. 
+
+
+- `Interacting with files :`  We could have an object that represents a file that is open for writing, wherein the file is opened in the constructor and closed when execution leaves the object's scope.
+
+In both cases, RAII ensures only that the resource in question is released appropriately; care must still be taken to maintain exception safety. 
+
+If the code modifying the data structure or file is not exception-safe, the mutex could be unlocked or the file closed with the data structure or file corrupted. 
+
+
+- `Ownership of dynamically allocated objects (memory allocated with new in C++)` can also be controlled with RAII, such that the object is released when the RAII (stack-based) object is destroyed. 
+
+For this purpose, the C++11 standard library defines the smart pointer classes `std::unique_ptr` for single-owned objects and `std::shared_ptr` for objects with shared ownership. 
+
+Similar classes are also available through `std::auto_ptr` in C++98, and `boost::shared_ptr` in the `Boost libraries`. 
+
+-  `Network resources using RAII ` In this case, the RAII object would send a message to a socket at the end of the constructor, when its initialization is completed. it would also send a message at the beginning of the destructor, when the object is about to be destroyed.
+
+Such a construct might be used in a client object to establish a connection with a server running in another process. 
+
+
+### C++ Example
+
+Unlike managed languages, C++ doesn't have automatic garbage collection, an internal process that releases heap memory and other resources as a program runs. 
+
+A C++ program is responsible for returning all acquired resources to the operating system. Failure to release an unused resource is called a leak. 
+
+Leaked resources are unavailable to other programs until the process exits. Memory leaks in particular are a common cause of bugs in C-style programming.
+
+Modern C++ avoids using heap memory as much as possible by declaring objects on the stack.
+When a resource is too large for the stack, then it should be owned by an object. As the object gets initialized, it acquires the resource it owns.
+
+The object is then responsible for releasing the resource in its destructor. The owning object itself is declared on the stack. 
+
+When a resource-owning stack object goes out of scope, its destructor is automatically invoked. In this way, garbage collection in C++ is closely related to object lifetime, and is deterministic.
+
+A resource is always released at a known point in the program, which you can control. Only deterministic destructors like those in C++ can handle memory and non-memory resources equally.
+
+There are 3 ways in C++ exists Creation & Deallocation of Memories.
+
+#### When Object Owns No Resourses
+
+The following example shows a simple object `w`. It's declared on the stack at function scope, and is destroyed at the end of the function block. The object `w` owns no resources (such as heap-allocated memory). Its only member `g` is itself declared on the stack, and simply goes out of scope along with `w`. No special code is needed in the widget destructor.
+
+```C++
+class widget {
+private:
+    gadget g;   // lifetime automatically tied to enclosing object
+public:
+    void draw();
+};
+
+void functionUsingWidget () {
+    widget w;   // lifetime automatically tied to enclosing scope
+                // constructs w, including the w.g gadget member
+    // ...
+    w.draw();
+    // ...
+} // automatic destruction and deallocation for w and w.g
+  // automatic exception safety,
+  // as if "finally { w.dispose(); w.g.dispose(); }"
+```
+
+#### When Object Owns Resourses (Destructor)
+
+In the following example, `w` owns a memory resource and so must have code in its `destructor` to delete the memory.
+
+```C++
+class widget
+{
+private:
+    int* data;
+public:
+    widget(const int size) { data = new int[size]; } // acquire
+    ~widget() { delete[] data; } // release
+    void do_something() {}
+};
+
+void functionUsingWidget() {
+    widget w(1000000);  // lifetime automatically tied to enclosing scope
+                        // constructs w, including the w.data member
+    w.do_something();
+
+} // automatic destruction and deallocation for w and w.data
+```
+
+#### When Object Owns Resourses (Smart Pointer) 
+
+Since C++ 11, there's a better way to Resourses Management: by using a `smart pointer` from the standard library. 
+The smart pointer handles the allocation and deletion of the memory it owns.
+
+Using a smart pointer eliminates the need for an explicit destructor in the `widget` class.
+
+```C++
+#include <memory>
+class widget
+{
+private:
+    std::unique_ptr<int[]> data;
+public:
+    widget(const int size) { data = std::make_unique<int[]>(size); }
+    void do_something() {}
+};
+
+void functionUsingWidget() {
+    widget w(1000000);  // lifetime automatically tied to enclosing scope
+                        // constructs w, including the w.data gadget member
+    // ...
+    w.do_something();
+    // ...
+} // automatic destruction and deallocation for w and w.data
+```
+By using smart pointers for memory allocation, you may eliminate the potential for memory leaks.
+This model works for other resources, such as file handles or sockets.
+
+You can manage your own resources in a similar way in your classes. For more information About Smart Pointer visit ::: https://learn.microsoft.com/en-us/cpp/cpp/smart-pointers-modern-cpp?view=msvc-170
+
+### When Resource acquisition is initialization (RAII) Pattern can be apply ?
+
+- Implement RAII in applications to manage essential resources such as file handles, network connections, and memory seamlessly.
+
+- Suitable in environments where deterministic resource management is crucial, such as real-time systems or applications with strict resource constraints.
+
+
 ## Multiton Pattern
+
+Multiton pattern is a design pattern which generalizes the `singleton pattern`. 
+
+Multiton also known as  `Registry of Singletons`.
+
+![alt text](image-21.png)
+
+Whereas the singleton allows only one instance of a class to be created, the multiton pattern `allows for the controlled creation of multiple instances`, which it manages through the use of a map. 
+
+Rather than having a single instance per application (e.g. the `java.lang.Runtime` object in the Java programming language) the multiton pattern instead ensures a `single instance per key`.
+
+
+### Structure of Multiton Pattern 
+
+Multiton is a `hash table` with `synchronized` access there are two important distinctions.
+
+- First, the multiton does not allow clients to add mappings.
+
+- Secondly, the multiton never returns a null or empty reference; instead, it creates and stores a multiton instance on the first request with the associated key. 
+
+Subsequent requests with the same key return the original instance.
+
+A hash table is merely an implementation detail and not the only possible approach.
+The pattern simplifies retrieval of shared objects in an application. 
+
+Since the object pool is created only once, being a member associated with the class (instead of the instance), the multiton retains its flat behavior rather than evolving into a tree structure. 
+
+
+
+### Why Multiton Pattern ?
+
+- The multiton is unique in that it provides `centralized access` to a single directory (i.e. all keys are in the same namespace, per se) of multitons, where each multiton instance in the pool may exist having its own state. In this manner, the pattern advocates indexed storage of essential objects for the system (such as would be provided by an LDAP system, for example).
+
+- A multiton is limited to wide use by a single system rather than a myriad of distributed systems.
+
+
+### Why not Multiton Pattern ?
+ 
+- This pattern, like the Singleton pattern, makes `unit testing` far more difficult, as it introduces global state into an application. 
+
+- With garbage collected languages it may become a source of `memory leaks` as it introduces global strong references to the objects. 
+
+
+### C++ Example
+
+```C++
+#ifndef INCLUDED_MULTITON_HPP
+#define INCLUDED_MULTITON_HPP
+
+#include <map>
+#include <string>
+
+/*
+    Multiton pattern template. It's similar to the singleton pattern, but
+    enables multiple instances through the use of keys.
+    NOTE: Manual destruction must be done before program exit. Not thread-safe.
+    
+    class Foo : public Multiton<Foo> {};
+    Foo &foo = Foo::getRef("foobar");
+    foo.bar();
+    Foo::destroyAll();
+ */
+
+template <typename T, typename Key = std::string>
+class Multiton
+{
+public:
+    static void destroyAll()
+    {
+        for (auto it = instances.begin(); it != instances.end(); ++it)
+            delete (*it).second;
+        instances.clear();
+    }
+    
+    static void destroy(const Key &key)
+    {
+        auto it = instances.find(key);
+        
+        if (it != instances.end()) {
+            delete (*it).second;
+            instances.erase(it);
+        }
+    }
+
+    static T* getPtr(const Key &key)
+    {
+        const auto it = instances.find(key);
+        
+        if (it != instances.end())
+            return (T*)(it->second);
+        
+        T* instance = new T;
+        instances[key] = instance;
+        return instance;
+    }
+    
+    static T& getRef(const Key &key)
+    {
+        return *getPtr(key);
+    }
+    
+protected:
+    Multiton();
+    ~Multiton();
+    
+private:
+    Multiton(const Multiton&);
+    Multiton& operator=(const Multiton&);
+    
+    static std::map<Key, T*> instances;
+};
+
+template <typename T, typename Key>
+std::map<Key, T*> Multiton<T, Key>::instances;
+
+#endif
+```
+
+
+### Java Example
+
+
+```Java
+public enum NazgulName {
+
+    KHAMUL, MURAZOR, DWAR, JI_INDUR, AKHORAHIL, HOARMURATH, ADUNAPHEL, REN, UVATHA
+}
+
+public final class Nazgul {
+
+    private static final Map<NazgulName, Nazgul> nazguls;
+
+    @Getter
+    private final NazgulName name;
+
+    static {
+        nazguls = new ConcurrentHashMap<>();
+        nazguls.put(NazgulName.KHAMUL, new Nazgul(NazgulName.KHAMUL));
+        nazguls.put(NazgulName.MURAZOR, new Nazgul(NazgulName.MURAZOR));
+        nazguls.put(NazgulName.DWAR, new Nazgul(NazgulName.DWAR));
+        nazguls.put(NazgulName.JI_INDUR, new Nazgul(NazgulName.JI_INDUR));
+        nazguls.put(NazgulName.AKHORAHIL, new Nazgul(NazgulName.AKHORAHIL));
+        nazguls.put(NazgulName.HOARMURATH, new Nazgul(NazgulName.HOARMURATH));
+        nazguls.put(NazgulName.ADUNAPHEL, new Nazgul(NazgulName.ADUNAPHEL));
+        nazguls.put(NazgulName.REN, new Nazgul(NazgulName.REN));
+        nazguls.put(NazgulName.UVATHA, new Nazgul(NazgulName.UVATHA));
+    }
+
+    private Nazgul(NazgulName name) {
+        this.name = name;
+    }
+
+    public static Nazgul getInstance(NazgulName name) {
+        return nazguls.get(name);
+    }
+}
+
+public static void main(String[] args) {
+    // eagerly initialized multiton
+    LOGGER.info("Printing out eagerly initialized multiton contents");
+    LOGGER.info("KHAMUL={}", Nazgul.getInstance(NazgulName.KHAMUL));
+    LOGGER.info("MURAZOR={}", Nazgul.getInstance(NazgulName.MURAZOR));
+    LOGGER.info("DWAR={}", Nazgul.getInstance(NazgulName.DWAR));
+    LOGGER.info("JI_INDUR={}", Nazgul.getInstance(NazgulName.JI_INDUR));
+    LOGGER.info("AKHORAHIL={}", Nazgul.getInstance(NazgulName.AKHORAHIL));
+    LOGGER.info("HOARMURATH={}", Nazgul.getInstance(NazgulName.HOARMURATH));
+    LOGGER.info("ADUNAPHEL={}", Nazgul.getInstance(NazgulName.ADUNAPHEL));
+    LOGGER.info("REN={}", Nazgul.getInstance(NazgulName.REN));
+    LOGGER.info("UVATHA={}", Nazgul.getInstance(NazgulName.UVATHA));
+
+    // enum multiton
+    LOGGER.info("Printing out enum-based multiton contents");
+    LOGGER.info("KHAMUL={}", NazgulEnum.KHAMUL);
+    LOGGER.info("MURAZOR={}", NazgulEnum.MURAZOR);
+    LOGGER.info("DWAR={}", NazgulEnum.DWAR);
+    LOGGER.info("JI_INDUR={}", NazgulEnum.JI_INDUR);
+    LOGGER.info("AKHORAHIL={}", NazgulEnum.AKHORAHIL);
+    LOGGER.info("HOARMURATH={}", NazgulEnum.HOARMURATH);
+    LOGGER.info("ADUNAPHEL={}", NazgulEnum.ADUNAPHEL);
+    LOGGER.info("REN={}", NazgulEnum.REN);
+    LOGGER.info("UVATHA={}", NazgulEnum.UVATHA);
+}
+```
+//Output
+
+```bash
+15:16:10.597 [main] INFO com.iluwatar.multiton.App -- Printing out eagerly initialized multiton contents
+15:16:10.600 [main] INFO com.iluwatar.multiton.App -- KHAMUL=com.iluwatar.multiton.Nazgul@4141d797
+15:16:10.600 [main] INFO com.iluwatar.multiton.App -- MURAZOR=com.iluwatar.multiton.Nazgul@38cccef
+15:16:10.600 [main] INFO com.iluwatar.multiton.App -- DWAR=com.iluwatar.multiton.Nazgul@5679c6c6
+15:16:10.600 [main] INFO com.iluwatar.multiton.App -- JI_INDUR=com.iluwatar.multiton.Nazgul@27ddd392
+15:16:10.600 [main] INFO com.iluwatar.multiton.App -- AKHORAHIL=com.iluwatar.multiton.Nazgul@19e1023e
+15:16:10.600 [main] INFO com.iluwatar.multiton.App -- HOARMURATH=com.iluwatar.multiton.Nazgul@7cef4e59
+15:16:10.600 [main] INFO com.iluwatar.multiton.App -- ADUNAPHEL=com.iluwatar.multiton.Nazgul@64b8f8f4
+15:16:10.600 [main] INFO com.iluwatar.multiton.App -- REN=com.iluwatar.multiton.Nazgul@2db0f6b2
+15:16:10.600 [main] INFO com.iluwatar.multiton.App -- UVATHA=com.iluwatar.multiton.Nazgul@3cd1f1c8
+15:16:10.600 [main] INFO com.iluwatar.multiton.App -- Printing out enum-based multiton contents
+15:16:10.601 [main] INFO com.iluwatar.multiton.App -- KHAMUL=KHAMUL
+15:16:10.601 [main] INFO com.iluwatar.multiton.App -- MURAZOR=MURAZOR
+15:16:10.601 [main] INFO com.iluwatar.multiton.App -- DWAR=DWAR
+15:16:10.601 [main] INFO com.iluwatar.multiton.App -- JI_INDUR=JI_INDUR
+15:16:10.601 [main] INFO com.iluwatar.multiton.App -- AKHORAHIL=AKHORAHIL
+15:16:10.601 [main] INFO com.iluwatar.multiton.App -- HOARMURATH=HOARMURATH
+15:16:10.601 [main] INFO com.iluwatar.multiton.App -- ADUNAPHEL=ADUNAPHEL
+15:16:10.601 [main] INFO com.iluwatar.multiton.App -- REN=REN
+15:16:10.601 [main] INFO com.iluwatar.multiton.App -- UVATHA=UVATHA
+```
+
+
+### C# Example
+
+```c#
+using System;
+using System.Collections.Generic;
+
+public enum MultitonType
+{
+    Zero,
+    One,
+    Two
+}
+
+public class Multiton
+{
+    private static readonly Dictionary<MultitonType, Multiton> instances =
+        new Dictionary<MultitonType, Multiton>();
+
+    private MultitonType type;
+
+    private Multiton(MultitonType type)
+    {
+        this.type = type;
+    }
+
+    public static Multiton GetInstance(MultitonType type)
+    {
+        // Lazy init (not thread safe as written)
+        // Recommend using Double Check Locking if needing thread safety
+        if (!instances.TryGetValue(type, out var instance))
+        {
+            instance = new Multiton(type);
+
+            instances.Add(type, instance);
+        }
+
+        return instance;
+    }
+
+    public override string ToString()
+    {
+        return "My type is " + this.type;
+    }
+
+    // Sample usage
+    public static void Main()
+    {
+        var m0 = Multiton.GetInstance(MultitonType.Zero);
+        var m1 = Multiton.GetInstance(MultitonType.One);
+        var m2 = Multiton.GetInstance(MultitonType.Two);
+
+        Console.WriteLine(m0);
+        Console.WriteLine(m1);
+        Console.WriteLine(m2);
+    }
+}
+```
+
+
 
 
 
