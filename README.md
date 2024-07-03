@@ -3109,6 +3109,194 @@ public class Multiton
 ```
 
 
+# Structural Design Patterns
+
+Structural design patterns are concerned with how classes and objects can be composed, to form larger structures.
+
+The structural design patterns `simplifies the structure by identifying the relationships`.
+
+It concerned with how classes and objects are composed to form larger structures.
+
+These patterns focus on, how the classes inherit from each other and how they are composed from other classes.
+
+Structural class patterns use inheritance to compose interfaces or implementations.
+
+As a simple example, consider how multiple inheritance mixes two or more classes into one. The result is a class that combines the properties of its parent classes. This pattern is particularly useful for making independently developed class libraries work together.
+
+So,structural design patterns ease the design `by identifying a simple way to realize relationships among entities`.
+
+
+## Examples of Structural Design Patterns
+
+- `Adapter pattern`: 'adapts' one interface for a class into one that a client expects.
+      - Adapter pipeline: Use multiple adapters for debugging purposes.
+      - Retrofit Interface Pattern: An adapter used as a new interface for multiple classes at the same time.
+
+- `Aggregate pattern`: a version of the Composite pattern with methods for aggregation of children.
+
+- `Bridge pattern`: decouple an abstraction from its implementation so that the two can vary independently.
+      - Tombstone: An intermediate "lookup" object contains the real location of an object.
+
+- `Composite pattern`: a tree structure of objects where every object has the same interface
+
+- `Decorator pattern`: add additional functionality to an object at runtime where subclassing would result in an exponential rise of new classes.
+
+- `Delegation pattern` : Extend a class by composition instead of subclassing. The object handles a request by delegating to a second object (the delegate). 
+
+- `Extensibility pattern`: a.k.a. Framework - hide complex code behind a simple interface
+
+- `Facade pattern`: create a simplified interface of an existing interface to ease usage for common tasks.
+
+- `Flyweight pattern`: a large quantity of objects share a common properties object to save space.
+
+- `Marker pattern`: an empty interface to associate metadata with a class.
+
+- `Module pattern` : Group several related elements, such as classes, singletons, methods, globally used, into a single conceptual entity. 
+
+- `Front controller pattern` : The pattern relates to the design of Web applications. It provides a centralized entry point for handling requests. 
+
+- `Pipes and filters`: a chain of processes where the output of each process is the input of the next.
+
+- `Opaque pointer`: a pointer to an undeclared or private type, to hide implementation details.
+
+- `Twin pattern` : Twin allows modeling of multiple inheritance in programming languages that do not support this feature.  
+
+- `Proxy pattern`: a class functioning as an interface to another thing.
+
+
+## Adapter Design Pattern 
+
+## Bridge Design Pattern 
+
+## Composite Design Pattern 
+
+## Decorator Design Pattern 
+
+## Facade Design Pattern 
+
+## Flyweight Design Pattern 
+
+## Proxy Design Pattern 
+
+## Aggregate Design Pattern
+
+## Delegation Design Pattern
+
+## Extensibility Design Pattern
+
+## Marker Design Pattern
+
+## Module Design Pattern
+
+## Pipes and Filters Design Pattern
+
+## Opaque Pointer Design Pattern
+
+## Twin Design Pattern
+
+## Front Controller Design Pattern
+
+
+
+# Behavioral Design Patterns
+
+Behavioral design patterns are design patterns that identify `common communication patterns among objects`. By doing so, these patterns increase flexibility in carrying out communication. 
+
+`Behavioral design patterns are concerned with algorithms and the assignment of responsibilities between objects.`
+
+Behavioral patterns describe not just patterns of objects or classes but also the patterns of communication between them. 
+
+These patterns characterize complex control flow that's difficult to follow at run-time. They shift your focus away from flow of control to let you concentrate just on the way objects are interconnected. 
+
+`Behavioral class patterns use inheritance to distribute behavior between classes. `
+
+In these design patterns, the interaction between the objects should be in such a way that they can easily talk to each other and still should be loosely coupled. 
+
+That means the implementation and the client should be loosely coupled in order to avoid hard coding and dependencies.
+
+
+# Examples of Behavioral Design Patterns
+
+- `Blackboard design pattern` ::: Provides a computational framework for the design and implementation of systems that integrate large and diverse specialized modules, and implement complex, non-deterministic control strategies
+
+- `Chain-of-responsibility pattern` ::: Command objects are handled or passed on to other objects by logic-containing processing objects
+
+- `Command pattern`::: Command objects encapsulate an action and its parameters.
+"Externalize the stack" : Turn a recursive function into an iterative function that uses a stack.
+
+- `Interpreter pattern` ::: Implement a specialized computer language to rapidly solve a specific set of problems.
+
+- `Iterator pattern` ::: Iterators are used to access the elements of an aggregate object sequentially without exposing its underlying representation.
+
+- `Mediator pattern` ::: Provides a unified interface to a set of interfaces in a subsystem.
+
+- `Memento pattern` ::: Provides the ability to restore an object to its previous state (rollback).
+
+- `Null object pattern` ::: Designed to act as a default value of an object.
+
+- `Observer pattern` ::: a.k.a. Publish/Subscribe or Event Listener. Objects register to observe an event that may be raised by another object.
+"Weak reference pattern" : De-couple an observer from an observable.
+
+- `Protocol stack` ::: Communications are handled by multiple layers, which form an encapsulation hierarchy.
+
+- `Servant` :::  Define common functionality for a group of classes. The servant pattern is also frequently called helper class or utility class implementation for a given set of classes. The helper classes generally have no objects hence they have all static methods that act upon different kinds of class objects.     
+
+- `Scheduled-task pattern` ::: A task is scheduled to be performed at a particular interval or clock time (used in real-time computing).
+
+- `Single-serving visitor pattern` ::: Optimise the implementation of a visitor that is allocated, used only once, and then deleted.
+
+- `Specification pattern` ::: Recombinable business logic in a boolean fashion.
+
+- `Fluent interface` ::: Design an API to be method chained so that it reads like a DSL. Each method call returns a context through which the next logical method call(s) are made available.     
+
+- `State pattern` ::: A clean way for an object to partially change its type at runtime.
+
+- `Strategy pattern` ::: Algorithms can be selected on the fly, using composition.
+
+- `Template method pattern` ::: Describes the skeleton of a program; algorithms can be selected on the fly, using inheritance.
+
+- `Visitor pattern` ::: A way to separate an algorithm from an object.
+
+
+
+## Blackboard Design Pattern
+
+## Chain of Responsibility Design Pattern
+
+## Command Design Pattern
+
+## Interpreter Design Pattern
+
+## Iterator Design Pattern
+
+## Mediator Design Pattern
+
+## Memento Design Pattern
+
+## Observer Design Pattern
+
+## State Design Pattern
+
+## Strategy Design Pattern
+
+## Template Design Pattern
+
+## Visitor Design Pattern
+
+## Single-serving visitor Design Pattern
+
+## Null Object Design Pattern
+
+## Protocol stack Design Pattern
+
+## Specification Design Pattern
+
+## Fluent interface Design Pattern
+
+## Servant Design Pattern
+
+## Scheduled-task Design Pattern
+
 
 
 
