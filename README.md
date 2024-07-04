@@ -3168,6 +3168,8 @@ So,structural design patterns ease the design `by identifying a simple way to re
 
 Adapter is a structural design pattern that allows objects with incompatible interfaces to collaborate.
 
+![alt text](image-7.png)
+
 Also known as `wrapper`, an alternative naming shared with the decorator pattern that allows the interface of an existing class to be used as another interface.
 
 It is often used to make existing classes work with others without modifying their source code. 
@@ -3612,16 +3614,266 @@ public class AdapterPatternDemo {
 // Output
 
 ```bash    
-Enter the account holder name :Sonoo Jaiswal  
+Enter the account holder name : Sonoo Jaiswal  
       
-Enter the account number:10001  
+Enter the account number: 10001  
       
-Enter the bank name :State Bank of India  
+Enter the bank name : State Bank of India  
       
 The Account number 10001 of Sonoo Jaiswal in State Bank of India bank is valid and authenticated for issuing the credit card. 
 ``` 
 
 ## Bridge Design Pattern 
+
+Bridge is a structural design pattern that lets you split a large class or a set of closely related classes into two separate hierarchies—abstraction and implementation—which can be developed independently of each other.
+
+The Bridge pattern separates an object's abstraction from its implementation so that you can vary them independently.
+
+Simply means, `Decouple an abstraction from its implementation allowing the two to vary independently. `
+
+![alt text](image-6.png)
+
+The bridge uses encapsulation, aggregation, and can use inheritance to separate responsibilities into different classes. 
+
+When a class varies often, the features of object-oriented programming become very useful because changes to a program's code can be made easily with minimal prior knowledge about the program.
+
+The bridge pattern is useful when both the class and what it does vary often. The class itself can be thought of as the abstraction and what the class can do as the implementation. The bridge pattern can also be thought of as two layers of abstraction. 
+
+When there is only one fixed implementation, this pattern is known as the Pimpl idiom in the C++ world. 
+
+The Bridge Pattern is also known as `Handle or Body`.
+
+visit for more info. ::: https://www.pentalog.com/blog/design-patterns/bridge-design-patterns/
+
+
+### Why Bridge Design Pattern ?
+
+- It enables the separation of implementation from the interface.
+
+- It improves the extensibility.
+
+- It allows the hiding of implementation details from the client.
+
+
+### Why not Bridge Design Pattern ?
+
+- Increased complexity due to over use of HAS-A principle.
+    
+- Interfaces with only single implementation.
+    
+- Multiple indirection.
+
+
+### Which Problems Bridge Design Pattern Solves ?
+
+When using subclassing, different subclasses implement an abstract class in different ways. But an implementation is bound to the abstraction at compile-time and cannot be changed at run-time. 
+
+- An abstraction and its implementation should be defined and extended independently from each other.
+
+- A compile-time binding between an abstraction and its implementation should be avoided so that an implementation can be selected at run-time.
+
+### How Such Problems Bridge Design Pattern Solves ?
+
+- Separate an abstraction (`Abstraction`) from its implementation (`Implementor`) by putting them in separate class hierarchies.
+
+- Implement the `Abstraction` in terms of (by delegating to) an `Implementor` object.
+
+This enables to configure an `Abstraction` with an `Implementor` object at run-time. 
+
+### When Bridge Design Pattern can be apply ?
+
+- When you don't want a permanent binding between the functional abstraction and its implementation.
+
+- When both the functional abstraction and its implementation need to extended using sub-classes.
+
+- It is mostly used in those places where changes are made in the implementation does not affect the clients.
+
+
+### Structure of Bridge Design Pattern
+
+![alt text](image-4.png)
+
+In the above Unified Modeling Language class diagram, an abstraction (`Abstraction`) is not implemented as usual in a single inheritance hierarchy.
+
+Instead, there is one hierarchy for an abstraction (`Abstraction`) and a separate hierarchy for its implementation (`Implementor`), which makes the two independent from each other.
+
+The `Abstraction` interface (`operation()`) is implemented in terms of (by delegating to) the `Implementor` interface (`imp.operationImp()`).
+
+The UML sequence diagram shows the run-time interactions: The `Abstraction1` object delegates implementation to the `Implementor1` object (by calling `operationImp()` on `Implementor1`), which performs the operation and returns to `Abstraction1`.
+
+- Class Diagram
+
+![alt text](image-5.png)
+
+`Abstraction (abstract class)` ::: defines the abstract interface and maintains the Implementor reference.
+
+`RefinedAbstraction (normal class)` ::: extends the interface defined by Abstraction.
+
+`Implementor (interface)` ::: defines the interface for implementation classes.
+
+`ConcreteImplementor (normal class)` ::: implements the Implementor interface.
+
+
+### C++ Example
+
+A more concrete example why this is useful will make it clearer. Suppose DrawingAPI1 encapsulates your graphics driver, while DrawingAPI2 does the same thing for your printer driver. Then DrawingAPI is the generic API for your graphics system. It lets you draw a CircleShape to your monitor and print it on a piece of paper using the same code, you only have to pass in the different DrawingAPI implementations. However, if you pass DrawingAPI into Shape.draw() instead of passing it into the constructor it would be more flexible because then you can use the same object graph for the monitor and the printer.
+
+
+```c++
+#include <iostream>
+#include <string>
+#include <vector>
+
+
+class DrawingAPI {
+  public:
+    virtual ~DrawingAPI() = default;
+    virtual std::string DrawCircle(float x, float y, float radius) const = 0;
+};
+
+class DrawingAPI01 : public DrawingAPI {
+  public:
+    std::string DrawCircle(float x, float y, float radius) const override {
+      return "API01.circle at " + std::to_string(x) + ":" + std::to_string(y) +
+        " - radius: " + std::to_string(radius); 
+    }
+};
+
+class DrawingAPI02 : public DrawingAPI {
+  public:
+    std::string DrawCircle(float x, float y, float radius) const override {
+      return "API02.circle at " + std::to_string(x) + ":" + std::to_string(y) +
+        " - radius: " + std::to_string(radius); 
+    }
+};
+
+class Shape {
+  public:
+    Shape(const DrawingAPI& drawing_api) : drawing_api_(drawing_api) {}
+    virtual ~Shape() = default;
+
+    virtual std::string Draw() const = 0;
+    virtual float ResizeByPercentage(const float percent) = 0;
+
+  protected:
+    const DrawingAPI& drawing_api_;
+};
+
+class CircleShape: public Shape {
+  public:    
+    CircleShape(float x, float y, float radius, const DrawingAPI& drawing_api)
+      : Shape(drawing_api), x_(x), y_(y), radius_(radius) {}
+
+    std::string Draw() const override {
+        return drawing_api_.DrawCircle(x_, y_, radius_);
+    }
+
+    float ResizeByPercentage(const float percent) override {
+      return radius_ *= (1.0f + percent/100.0f);
+    }
+  
+  private:
+    float x_, y_, radius_;
+};
+
+int main(int argc, char** argv) {
+  const DrawingAPI01 api1{};
+  const DrawingAPI02 api2{};
+  std::vector<CircleShape> shapes {
+    CircleShape{1.0f, 2.0f, 3.0f, api1},
+    CircleShape{5.0f, 7.0f, 11.0f, api2}
+  }; 
+
+  for (auto& shape: shapes) {
+    shape.ResizeByPercentage(2.5);
+    std::cout << shape.Draw() << std::endl;
+  }
+
+  return 0;
+}
+```
+
+//Output
+
+```bash
+API01.circle at 1.000000:2.000000 - radius: 3.075000
+API02.circle at 5.000000:7.000000 - radius: 11.275000
+```
+
+### Java Example
+
+The following Java program defines a bank account that separates the account operations from the logging of these operations. 
+
+```java
+// Logger has two implementations: info and warning
+@FunctionalInterface
+interface Logger {
+    void log(String message);
+    
+    static Logger info() {
+        return message -> System.out.println("info: " + message);
+    }
+    static Logger warning() {
+        return message -> System.out.println("warning: " + message);
+    }
+}
+
+abstract class AbstractAccount {
+    private Logger logger = Logger.info();
+    
+    public void setLogger(Logger logger) {
+        this.logger = logger;
+    }
+    
+    // the logging part is delegated to the Logger implementation
+    protected void operate(String message, boolean result) {
+        logger.log(message + " result " + result);
+    }
+}
+
+class SimpleAccount extends AbstractAccount {
+    private int balance;
+    
+    public SimpleAccount(int balance) {
+        this.balance = balance;
+    }
+    
+    public boolean isBalanceLow() {
+        return balance < 50;
+    }
+    
+    public void withdraw(int amount) {
+        boolean shouldPerform = balance >= amount;
+        if (shouldPerform) {
+            balance -= amount;
+        }
+        operate("withdraw " + amount, shouldPerform);
+    }
+}
+
+public class BridgeDemo {
+    public static void main(String[] args) {
+        SimpleAccount account = new SimpleAccount(100);
+        account.withdraw(75);
+        
+        if (account.isBalanceLow()) {
+            // you can also change the Logger implementation at runtime
+            account.setLogger(Logger.warning());
+        }
+        
+        account.withdraw(10);
+        account.withdraw(100);
+    }
+}
+```
+
+//Output
+
+```bash
+info: withdraw 75 result true
+warning: withdraw 10 result true
+warning: withdraw 100 result false
+```
 
 ## Composite Design Pattern 
 
