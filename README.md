@@ -4344,6 +4344,696 @@ public class CompositePatternDemo {
 
 ## Decorator Design Pattern 
 
+Decorator pattern is a design pattern that allows behavior to be added to an individual object, dynamically, without affecting the behavior of other instances of the same class.
+
+`It describes how to add responsibilities to objects dynamically.`
+
+It composes objects recursively to allow an open-ended number of additional responsibilities. 
+
+For example, a Decorator object containing a user interface component can add a decoration like a border or shadow to the component, or it can add functionality like scrolling and zooming.
+
+We can add two decorations simply by nesting one Decorator object within another, and so on for additional decorations.To accomplish this, each Decorator object must conform to the interface of its component and must forward messages to it. 
+
+The Decorator can do its job (such as drawing a border around the component) either before or after forwarding a message.
+
+![alt text](image-14.png)
+
+The decorator pattern is often useful for adhering (stick) to the Single Responsibility Principle, as it allows functionality to be divided between classes with unique areas of concern as well as to the Open-Closed Principle, by allowing the functionality of a class to be extended without being modified.
+
+Decorator use can be more efficient than subclassing, because an object's behavior can be augmented without defining an entirely new object. 
+
+### Why Decorator Design Pattern ?
+
+- It provides greater flexibility than static inheritance.
+
+- It enhances the extensibility of the object, because changes are made by coding new classes.
+
+- It simplifies the coding by allowing you to develop a series of functionality from targeted classes instead of coding all of the behavior into the object.
+
+
+### Which Problems Decorator Design Pattern Solves ?
+
+When using subclassing, different subclasses extend a class in different ways. But an extension is bound to the class at compile-time and can't be changed at run-time.
+
+- Responsibilities should be added to (and removed from) an object dynamically at run-time.
+
+- A flexible alternative to subclassing for extending functionality should be provided.
+
+### How Such Problems Decorator Design Pattern Solves ?
+
+Define `Decorator` objects that 
+
+- implement the interface of the extended (decorated) object (`Component`) transparently by forwarding all requests to it.
+
+- perform additional functionality before/after forwarding a request.
+
+This allows working with different `Decorator` objects to extend the functionality of an object dynamically at run-time. 
+
+
+### When Decorator Design Pattern can be apply ?
+
+- When you want to transparently and dynamically add responsibilities to objects without affecting other objects.
+
+- When you want to add responsibilities to an object that you may want to change in future.
+    
+- Extending functionality by sub-classing is no longer practical.
+
+
+### Structure of Decorator Design Pattern
+
+![alt text](image-13.png)
+
+In the above UML class diagram, the abstract `Decorator` class maintains a reference (`component`) to the decorated object (`Component`) and forwards all requests to it (`component.operation()`). 
+
+This makes `Decorator` transparent (invisible) to clients of `Component`. 
+
+Subclasses (`Decorator1`,`Decorator2`) implement additional behavior (`addBehavior()`) that should be added to the `Component` (before/after forwarding a request to it).
+
+:::: The sequence diagram shows the run-time interactions :::: 
+
+The `Client` object works through `Decorator1` and `Decorator2` objects to extend the functionality of a `Component1` object. 
+
+The `Client` calls `operation()` on `Decorator1`, which forwards the request to `Decorator2`. 
+
+`Decorator2` performs `addBehavior()` after forwarding the request to `Component1` and returns to `Decorator1`, which performs `addBehavior()` and returns to the `Client`. 
+
+
+- `More Depth Decorator Design Pattern Structure Explanation`
+
+The decorator pattern can be used to extend (decorate) the functionality of a certain object statically, or in some cases at run-time, independently of other instances of the same class, provided some groundwork is done at design time.
+
+This is achieved by designing a new `Decorator` class that wraps the original class.
+
+![alt text](image-15.png)
+
+This wrapping could be achieved by the following sequence of steps: 
+
+- Subclass the original Component class into a `Decorator` class (see UML diagram);
+
+- In the Decorator class, add a Component pointer as a field;
+
+- In the Decorator class, pass a Component to the Decorator constructor to initialize the Component pointer;
+
+- In the Decorator class, forward all Component methods to the Component pointer;
+
+- In the ConcreteDecorator class, override any Component method(s) whose behavior needs to be modified.
+
+This pattern is designed so that `multiple decorators can be stacked on top of each other`, each time adding a new functionality to the overridden method(s). 
+
+Note that decorators and the original class object share a common set of features. In the previous diagram, the operation() method was available in both the decorated and undecorated versions. 
+
+The decoration features (e.g., methods, properties, or other members) are usually defined by an interface, mixin (a.k.a. trait) or class inheritance which is shared by the decorators and the decorated object.
+
+In the previous example, the class Component is inherited by both the ConcreteComponent and the subclasses that descend from Decorator. 
+
+`The decorator pattern is an alternative to subclassing.` 
+
+`Subclassing adds behavior at compile time`, and the change affects all instances of the original class.
+
+But, `Decorating can provide new behavior at run-time for selected objects.`
+
+
+### Common Usecases
+
+- `Applying decorators`
+
+Adding or removing decorators on command (like a button press) is a common UI pattern, often implemented along with the `Command design pattern`.
+
+For example, a text editing application might have a button to highlight text.
+
+On button press, the individual text glyphs currently selected will all be wrapped in decorators that modify their draw() function, causing them to be drawn in a highlighted manner (a real implementation would probably also use a demarcation system to maximize efficiency). 
+
+Applying or removing decorators based on changes in state is another common use case.
+
+Depending on the scope of the state, decorators can be applied or removed in bulk. 
+
+Similarly, the State design pattern can be implemented using decorators instead of subclassed objects encapsulating the changing functionality. The use of decorators in this manner makes the State object's internal state and functionality more compositional and capable of handling arbitrary complexity. 
+
+- `Usage in Flyweight objects`
+
+Decoration is also often used in the Flyweight design pattern. Flyweight objects are divided into two components:
+
+An invariant component that is shared between all flyweight objects; 
+
+A variant, decorated component that may be partially shared or completely unshared.
+
+This partitioning of the flyweight object is intended to reduce memory consumption. 
+
+The decorators are typically cached and reused as well. 
+
+The decorators will all contain a common reference to the shared, invariant object. If the decorated state is only partially variant, then the decorators can also be shared to some degree - though care must be taken not to alter their state while they're being used. 
+
+`iOS's UITableView` implements the flyweight pattern in this manner - a tableview's reusable cells are decorators that contains a references to a common tableview row object, and the cells are cached / reused. 
+
+- `Architectural relevance`
+
+Decorators support a compositional rather than a top-down, hierarchical approach to extending functionality.
+
+A decorator makes it possible to add or alter behavior of an interface at run-time. 
+
+They can be used to wrap objects in a multilayered, arbitrary combination of ways.
+
+Doing the same with subclasses means implementing complex networks of multiple inheritance, which is memory-inefficient and at a certain point just cannot scale. Likewise, attempting to implement the same functionality with properties bloats each instance of the object with unnecessary properties. 
+
+For the above reasons decorators are often considered a memory-efficient alternative to subclassing. 
+
+Decorators can also be used to specialize objects which are not subclassable, whose characteristics need to be altered at runtime (as mentioned elsewhere), or generally objects that are lacking in some needed functionality. 
+
+
+- `Usage in enhancing APIs`
+
+The decorator pattern also can augment the `Facade pattern`. 
+
+A facade is designed to simply interface with the complex system it encapsulates, but it does not add functionality to the system.
+
+However, the wrapping of a complex system provides a space that may be used to introduce new functionality based on the coordination of subcomponents in the system. 
+
+For example, a facade pattern may unify many different languages dictionaries under one multi-language dictionary interface. The new interface may also provide new functions for translating words between languages. 
+
+This is a hybrid pattern - the unified interface provides a space for augmentation. 
+
+Think of decorators as not being limited to wrapping individual objects, but capable of wrapping clusters of objects in this hybrid approach as well. 
+
+### C++ Example
+
+Two options are presented here: first, a `dynamic, runtime-composable decorator` (has issues with calling decorated functions unless proxied explicitly) and a `Static Decorator that uses mixin inheritance`. 
+
+- `Dynamic Decorator`
+
+// Example 1
+
+```C++
+#include <iostream>
+#include <string>
+
+struct Shape {
+  virtual ~Shape() = default;
+
+  virtual std::string GetName() const = 0;
+};
+
+struct Circle : Shape {
+  void Resize(float factor) { radius *= factor; }
+
+  std::string GetName() const override {
+    return std::string("A circle of radius ") + std::to_string(radius);
+  }
+
+  float radius = 10.0f;
+};
+
+struct ColoredShape : Shape {
+  ColoredShape(const std::string& color, Shape* shape)
+      : color(color), shape(shape) {}
+
+  std::string GetName() const override {
+    return shape->GetName() + " which is colored " + color;
+  }
+
+  std::string color;
+  Shape* shape;
+};
+
+int main() {
+  Circle circle;
+  ColoredShape colored_shape("red", &circle);
+  std::cout << colored_shape.GetName() << std::endl;
+
+}
+```
+
+// Example 2
+
+```c++
+#include <memory>
+#include <iostream>
+#include <string>
+
+struct WebPage
+{
+    virtual void display()=0;
+    virtual ~WebPage() = default;
+};
+
+struct BasicWebPage : WebPage
+{
+    std::string html;
+    void display() override
+    {
+        std::cout << "Basic WEB page" << std::endl;
+    }
+};
+
+struct WebPageDecorator : WebPage
+{
+    WebPageDecorator(std::unique_ptr<WebPage> webPage): _webPage(std::move(webPage))
+    {
+    }
+    void display() override
+    {
+        _webPage->display();
+    }
+private:
+    std::unique_ptr<WebPage> _webPage;
+};
+
+struct AuthenticatedWebPage : WebPageDecorator
+{
+    AuthenticatedWebPage(std::unique_ptr<WebPage> webPage): 
+    WebPageDecorator(std::move(webPage))
+    {}
+
+    void authenticateUser()
+    {
+        std::cout << "authentification done" << std::endl;
+    }
+    void display() override
+    {
+        authenticateUser();
+        WebPageDecorator::display();
+    }
+};
+
+struct AuthorizedWebPage : WebPageDecorator
+{
+    AuthorizedWebPage(std::unique_ptr<WebPage> webPage): 
+    WebPageDecorator(std::move(webPage))
+    {}
+
+    void authorizedUser()
+    {
+        std::cout << "authorized done" << std::endl;
+    }
+    void display() override
+    {
+        authorizedUser();
+        WebPageDecorator::display();
+    }
+};
+
+int main(int argc, char* argv[])
+{
+    std::unique_ptr<WebPage> myPage = std::make_unique<BasicWebPage>();
+
+    myPage = std::make_unique<AuthorizedWebPage>(std::move(myPage));
+    myPage = std::make_unique<AuthenticatedWebPage>(std::move(myPage));
+    myPage->display();
+    std::cout << std::endl;
+    return 0;
+}
+```
+
+- `Static Decorator (Mixin Inheritance)`
+
+This example demonstrates a static Decorator implementation, which is possible due to C++ ability to inherit from the template argument. 
+
+```C++
+#include <iostream>
+#include <string>
+
+struct Circle {
+  void Resize(float factor) { radius *= factor; }
+
+  std::string GetName() const {
+    return std::string("A circle of radius ") + std::to_string(radius);
+  }
+
+  float radius = 10.0f;
+};
+
+template <typename T>
+struct ColoredShape : public T {
+  ColoredShape(const std::string& color) : color(color) {}
+
+  std::string GetName() const {
+    return T::GetName() + " which is colored " + color;
+  }
+
+  std::string color;
+};
+
+int main() {
+  ColoredShape<Circle> red_circle("red");
+  std::cout << red_circle.GetName() << std::endl;
+  red_circle.Resize(1.5f);
+  std::cout << red_circle.GetName() << std::endl;
+}
+```
+
+### Another C++ Example
+
+```C++
+#include <iostream>
+#include <memory>
+
+// Beverage interface.
+class Beverage {
+public:
+  virtual void drink() = 0;
+  virtual ~Beverage() = default;
+};
+
+// Drinks which can be decorated.
+class Coffee : public Beverage {
+public:
+  virtual void drink() override {
+    std::cout << "Drinking Coffee";
+  }
+};
+
+class Soda : public Beverage {
+public:
+  virtual void drink() override {
+    std::cout << "Drinking Soda";
+  }
+};
+
+class BeverageDecorator : public Beverage {
+public:
+  BeverageDecorator() = delete;
+  BeverageDecorator(std::unique_ptr<Beverage> component_) 
+    : component(std::move(component_)) 
+  {}
+  
+  virtual void drink() = 0;
+
+protected:
+  void callComponentDrink() {
+    if (component) {
+      component->drink();
+    }
+  }
+
+private:
+  std::unique_ptr<Beverage> component;
+};
+
+class Milk : public BeverageDecorator {
+public:
+  Milk(std::unique_ptr<Beverage> component_, float percentage_) 
+    : BeverageDecorator(std::move(component_))
+    , percentage(percentage_) 
+  { 
+  }
+
+  virtual void drink() override {
+    callComponentDrink();
+    std::cout << ", with milk of richness " << percentage << "%";
+  }
+
+private:
+
+  float percentage;
+};
+
+class IceCubes : public BeverageDecorator {
+public:
+  IceCubes(std::unique_ptr<Beverage> component_, int count_) 
+    : BeverageDecorator(std::move(component_))
+    , count(count_) 
+  { 
+  }
+
+  virtual void drink() override {
+    callComponentDrink();
+    std::cout << ", with " << count << " ice cubes";
+  }
+
+private:
+
+  int count;
+};
+
+class Sugar : public BeverageDecorator {
+public:
+  Sugar(std::unique_ptr<Beverage> component_, int spoons_) 
+    : BeverageDecorator(std::move(component_))
+    , spoons(spoons_) 
+  { 
+  }
+
+  virtual void drink() override {
+    callComponentDrink();
+    std::cout << ", with " << spoons << " spoons of sugar";
+  }
+
+private:
+
+  int spoons = 1;
+};
+
+int main() {
+  
+  std::unique_ptr<Beverage> soda = std::make_unique<Soda>();
+  soda = std::make_unique<IceCubes>(std::move(soda), 3);
+  soda = std::make_unique<Sugar>(std::move(soda), 1);
+
+  soda->drink();
+  std::cout << std::endl;
+  
+  std::unique_ptr<Beverage> coffee = std::make_unique<Coffee>();
+  coffee = std::make_unique<IceCubes>(std::move(coffee), 16);
+  coffee = std::make_unique<Milk>(std::move(coffee), 3.);
+  coffee = std::make_unique<Sugar>(std::move(coffee), 2);
+
+  coffee->drink();
+
+  return 0;
+}
+```
+// Output
+
+```bash
+Drinking Soda, with 3 ice cubes, with 1 spoons of sugar
+Drinking Coffee, with 16 ice cubes, with milk of richness 3%, with 2 spoons of sugar
+```
+
+### Java Example
+
+First example (`window/scrolling scenario`)
+
+The following Java example illustrates the use of decorators using the window/scrolling scenario. 
+
+```java
+// The Window interface class
+public interface Window {
+    void draw(); // Draws the Window
+    String getDescription(); // Returns a description of the Window
+}
+
+// Implementation of a simple Window without any scrollbars
+class SimpleWindow implements Window {
+    @Override
+    public void draw() {
+        // Draw window
+    }
+    @Override
+    public String getDescription() {
+        return "simple window";
+    }
+}
+```
+
+The following classes contain the decorators for all `Window` classes, including the decorator classes themselves. 
+
+```java
+// abstract decorator class - note that it implements Window
+abstract class WindowDecorator implements Window {
+    private final Window windowToBeDecorated; // the Window being decorated
+
+    public WindowDecorator (Window windowToBeDecorated) {
+        this.windowToBeDecorated = windowToBeDecorated;
+    }
+    @Override
+    public void draw() {
+        windowToBeDecorated.draw(); //Delegation
+    }
+    @Override
+    public String getDescription() {
+        return windowToBeDecorated.getDescription(); //Delegation
+    }
+}
+
+// The first concrete decorator which adds vertical scrollbar functionality
+class VerticalScrollBarDecorator extends WindowDecorator {
+    public VerticalScrollBarDecorator (Window windowToBeDecorated) {
+        super(windowToBeDecorated);
+    }
+
+    @Override
+    public void draw() {
+        super.draw();
+        drawVerticalScrollBar();
+    }
+
+    private void drawVerticalScrollBar() {
+        // Draw the vertical scrollbar
+    }
+
+    @Override
+    public String getDescription() {
+        return super.getDescription() + ", including vertical scrollbars";
+    }
+}
+
+// The second concrete decorator which adds horizontal scrollbar functionality
+class HorizontalScrollBarDecorator extends WindowDecorator {
+    public HorizontalScrollBarDecorator (Window windowToBeDecorated) {
+        super(windowToBeDecorated);
+    }
+
+    @Override
+    public void draw() {
+        super.draw();
+        drawHorizontalScrollBar();
+    }
+
+    private void drawHorizontalScrollBar() {
+        // Draw the horizontal scrollbar
+    }
+
+    @Override
+    public String getDescription() {
+        return super.getDescription() + ", including horizontal scrollbars";
+    }
+}
+```
+
+Here's a test program that creates a `Window` instance which is fully decorated (i.e., with vertical and horizontal scrollbars), and prints its description: 
+
+```java
+public class DecoratedWindowTest {
+    public static void main(String[] args) {
+        // Create a decorated Window with horizontal and vertical scrollbars
+        Window decoratedWindow = new HorizontalScrollBarDecorator (
+                new VerticalScrollBarDecorator (new SimpleWindow()));
+
+        // Print the Window's description
+        System.out.println(decoratedWindow.getDescription());
+    }
+}
+```
+
+// Output
+
+```bash 
+"simple window, including vertical scrollbars, including horizontal scrollbars" 
+```
+`Notice` ::: how the `getDescription` method of the two decorators first retrieve the decorated Window's description and decorates it with a suffix.
+
+### Another Java Example
+
+`Coffee making scenario`
+
+The next Java example illustrates the use of decorators using coffee making scenario. In this example, the scenario only includes cost and ingredients. 
+
+```java
+// The interface Coffee defines the functionality of Coffee implemented by decorator
+public interface Coffee {
+    public double getCost(); // Returns the cost of the coffee
+    public String getIngredients(); // Returns the ingredients of the coffee
+}
+
+// Extension of a simple coffee without any extra ingredients
+public class SimpleCoffee implements Coffee {
+    @Override
+    public double getCost() {
+        return 1;
+    }
+
+    @Override
+    public String getIngredients() {
+        return "Coffee";
+    }
+}
+```
+The following classes contain the decorators for all `Coffee` classes, including the decorator classes themselves. 
+
+```java
+// Abstract decorator class - note that it implements Coffee interface
+public abstract class CoffeeDecorator implements Coffee {
+    private final Coffee decoratedCoffee;
+
+    public CoffeeDecorator(Coffee c) {
+        this.decoratedCoffee = c;
+    }
+
+    @Override
+    public double getCost() { // Implementing methods of the interface
+        return decoratedCoffee.getCost();
+    }
+
+    @Override
+    public String getIngredients() {
+        return decoratedCoffee.getIngredients();
+    }
+}
+
+// Decorator WithMilk mixes milk into coffee.
+// Note it extends CoffeeDecorator.
+class WithMilk extends CoffeeDecorator {
+    public WithMilk(Coffee c) {
+        super(c);
+    }
+
+    @Override
+    public double getCost() { // Overriding methods defined in the abstract superclass
+        return super.getCost() + 0.5;
+    }
+
+    @Override
+    public String getIngredients() {
+        return super.getIngredients() + ", Milk";
+    }
+}
+
+// Decorator WithSprinkles mixes sprinkles onto coffee.
+// Note it extends CoffeeDecorator.
+class WithSprinkles extends CoffeeDecorator {
+    public WithSprinkles(Coffee c) {
+        super(c);
+    }
+
+    @Override
+    public double getCost() {
+        return super.getCost() + 0.2;
+    }
+
+    @Override
+    public String getIngredients() {
+        return super.getIngredients() + ", Sprinkles";
+    }
+}
+```
+Here's a test program that creates a `Coffee` instance which is fully decorated (with milk and sprinkles), and calculate cost of coffee and prints its ingredients: 
+
+```java
+public class Main {
+    public static void printInfo(Coffee c) {
+        System.out.println("Cost: " + c.getCost() + "; Ingredients: " + c.getIngredients());
+    }
+
+    public static void main(String[] args) {
+        Coffee c = new SimpleCoffee();
+        printInfo(c);
+
+        c = new WithMilk(c);
+        printInfo(c);
+
+        c = new WithSprinkles(c);
+        printInfo(c);
+    }
+}
+```
+// Output
+
+```bash
+Cost: 1.0; Ingredients: Coffee
+Cost: 1.5; Ingredients: Coffee, Milk
+Cost: 1.7; Ingredients: Coffee, Milk, Sprinkles
+```
+
+
 ## Facade Design Pattern 
 
 ## Flyweight Design Pattern 
