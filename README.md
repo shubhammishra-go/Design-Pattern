@@ -3078,7 +3078,7 @@ public class Multiton
     public static Multiton GetInstance(MultitonType type)
     {
         // Lazy init (not thread safe as written)
-        // Recommend using Double Check Locking if needing thread safety
+        // Recommend using Double Check Locking if needdil ka haal sune dilwalaing thread safety
         if (!instances.TryGetValue(type, out var instance))
         {
             instance = new Multiton(type);
@@ -3165,6 +3165,461 @@ So,structural design patterns ease the design `by identifying a simple way to re
 
 
 ## Adapter Design Pattern 
+
+Adapter is a structural design pattern that allows objects with incompatible interfaces to collaborate.
+
+Also known as `wrapper`, an alternative naming shared with the decorator pattern that allows the interface of an existing class to be used as another interface.
+
+It is often used to make existing classes work with others without modifying their source code. 
+
+In other words, to provide the interface according to client requirement while using the services of a class with a different interface.
+
+Adapter Pattern. In general, an adapter makes one interface (the adaptee's) conform to another, thereby providing a uniform abstraction of different interfaces. 
+
+A class adapter accomplishes this by inheriting privately from an adaptee class. The adapter then expresses its interface in terms of the adaptee's.
+
+An example is an adapter that converts the interface of a Document Object Model of an XML document into a tree structure that can be displayed.
+
+
+### Why Adapter Design Pattern ?
+
+Adapter pattern is used when you want to adapt an existing class's interface to another interface that a client expects to work with. It usually just involves delegation or translation from a method of one interface to the corresponding method of the other.
+
+- It allows two or more previously incompatible objects to interact.
+- It allows reusability of existing functionality.
+
+
+### Which Problems Adapter Design Pattern Solves ?
+
+The adapter design pattern solves problems like:
+
+- How can a class be reused that does not have an interface that a client requires?
+- How can classes that have incompatible interfaces work together?
+- How can an alternative interface be provided for a class?
+
+### How Such Problems Adapter Design Pattern Solves ?
+
+The adapter design pattern describes how to solve such problems: 
+
+- Define a separate `adapter` class that converts the (incompatible) interface of a class (`adaptee`) into another interface (`target`) clients require.
+
+- Work through an `adapter` to work with (reuse) classes that do not have the required interface.
+
+The key idea in this pattern is to work through a separate `adapter` that adapts the interface of an (already existing) class without changing it.
+
+Clients don't know whether they work with a target class directly or through an `adapter` with a class that does not have the `target` interface. 
+
+
+### When Adapter Design Pattern can be apply ?
+
+- When an object needs to utilize an existing class with an incompatible interface.
+
+- When you want to create a reusable class that cooperates with classes which don't have compatible interfaces.
+
+- When you want to create a reusable class that cooperates with classes which don't have compatible interfaces.
+
+
+### Real World Example of Adapter Design Pattern
+
+For the most part, all DVRs have the same basic functionality: start recording from a certain video source; stop recording; start playback from a certain time; stop playback, etc.
+
+Every DVR manufacturer provided a software library, allowing us to write code to control their device (for sake of this discussion, I'll refer to it as the SDK). Even though every SDK provided APIs for all the basic functionality, none of them were quite the same. Here's a very rough example, but you get the idea:
+
+- `BeginPlayback(DateTime startTime);`
+- `StartPlayback(long startTimeTicks);`
+- `Playback(string startDate, string startTime);`
+
+Our software needed to be able to interact with all DVRs. So instead of writing horrible switch/cases for each different SDK, we created our own common IDVRController interface, and wrote all of our system code to that interface:
+
+`Playback(DateTime startTime);`
+
+We then wrote a different adapter implementation for each SDK, all of which implemented our IDVRController interface. We used a config file to specify the type of DVR the system would connect to, and a Factory pattern to instantiate the correct implementer of IDVRController for that DVR.
+
+In that way, the adapter pattern made our system code simpler: we always coded to IDVRController. And it allowed us to roll out adapters for new SDKs post-deployment (our Factory used reflection to instantiate the correct IDVRController instance).
+
+
+### Structure of Adapter Design Pattern 
+
+![alt text](image.png)
+
+In the above UML class diagram, the client class that requires a target interface cannot reuse the adaptee class directly because its interface doesn't conform to the target interface. 
+
+Instead, the client works through an adapter class that implements the target interface in terms of adaptee:
+
+- The `object adapter` way implements the target interface by delegating to an `adaptee` object at `run-time` (`adaptee.specificOperation()`).
+
+![alt text](image-1.png)
+
+In this adapter pattern, the adapter contains an instance of the class it wraps. In this situation, the adapter makes calls to the instance of the wrapped object. 
+
+
+- The `class adapter` way implements the target interface by inheriting from an `adaptee` class at `compile-time` (`specificOperation()`).
+
+![alt text](image-2.png)
+
+This adapter pattern uses multiple polymorphic interfaces implementing or inheriting both the interface that is expected and the interface that is pre-existing. It is typical for the expected interface to be created as a pure interface class, especially in languages such as Java (before JDK 1.8) that do not support multiple inheritance of classes.
+
+
+### C++ Example
+```C++
+/*
+ * Example of `adapter' design pattern
+ * Copyright (C) 2011 Radek Pazdera
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include <iostream>
+#include <string>
+
+typedef int Cable; // wire with electrons :-)
+
+/* Adaptee (source) interface */
+class EuropeanSocketInterface
+{
+    public:
+        virtual int voltage() = 0;
+
+        virtual Cable live() = 0;
+        virtual Cable neutral() = 0; 
+        virtual Cable earth() = 0;
+};
+
+/* Adaptee */
+class Socket : public EuropeanSocketInterface
+{
+    public:
+        int voltage() { return 230; }
+
+        Cable live() { return 1; }
+        Cable neutral() { return -1; }
+        Cable earth() { return 0; }
+};
+
+/* Target interface */
+class USASocketInterface
+{
+    public:
+        virtual int voltage() = 0;
+
+        virtual Cable live() = 0;
+        virtual Cable neutral() = 0;
+};
+
+/* The Adapter */
+class Adapter : public USASocketInterface
+{
+    EuropeanSocketInterface* socket;
+
+    public:
+        void plugIn(EuropeanSocketInterface* outlet)
+        {
+            socket = outlet;
+        }
+
+        int voltage() { return 110; }
+        Cable live() { return socket->live(); }
+        Cable neutral() { return socket->neutral(); }
+};
+
+/* Client */
+class ElectricKettle
+{
+    USASocketInterface* power;
+
+    public:
+        void plugIn(USASocketInterface* supply)
+        {
+            power = supply;
+        }
+
+        void boil()
+        {
+            if (power->voltage() > 110)
+            {
+                std::cout << "Kettle is on fire!" << std::endl;
+                return;
+            }
+
+            if (power->live() == 1 && power->neutral() == -1)
+            {
+                std::cout << "Coffee time!" << std::endl;
+            }
+        }
+};
+
+
+int main()
+{
+    Socket* socket = new Socket;
+    Adapter* adapter = new Adapter;
+    ElectricKettle* kettle = new ElectricKettle;
+
+    /* Pluging in. */
+    adapter->plugIn(socket);
+    kettle->plugIn(adapter);
+
+    /* Having coffee */
+    kettle->boil();
+
+    return 0;
+}
+```
+
+### Java Example
+
+When implementing the adapter pattern, for clarity, one can apply the class name [ClassName]To[Interface]Adapter to the provider implementation; for example ::  `DAOToProviderAdapter`.
+
+It should have a constructor method with an adaptee class variable as a parameter. This parameter will be passed to an instance member of [ClassName]To[Interface]Adapter. 
+
+When the clientMethod is called, it will have access to the adaptee instance that allows for accessing the required data of the adaptee and performing operations on that data that generates the desired output. 
+
+
+```java
+interface ILightningPhone {
+    void recharge();
+    void useLightning();
+}
+
+interface IMicroUsbPhone {
+    void recharge();
+    void useMicroUsb();
+}
+
+class Iphone implements ILightningPhone {
+    private boolean connector;
+
+    @Override
+    public void useLightning() {
+        connector = true;
+        System.out.println("Lightning connected");
+    }
+
+    @Override
+    public void recharge() {
+        if (connector) {
+            System.out.println("Recharge started");
+            System.out.println("Recharge finished");
+        } else {
+            System.out.println("Connect Lightning first");
+        }
+    }
+}
+
+class Android implements IMicroUsbPhone {
+    private boolean connector;
+
+    @Override
+    public void useMicroUsb() {
+        connector = true;
+        System.out.println("MicroUsb connected");
+    }
+
+    @Override
+    public void recharge() {
+        if (connector) {
+            System.out.println("Recharge started");
+            System.out.println("Recharge finished");
+        } else {
+            System.out.println("Connect MicroUsb first");
+        }
+    }
+}
+/* exposing the target interface while wrapping source object */
+class LightningToMicroUsbAdapter implements IMicroUsbPhone {
+    private final ILightningPhone lightningPhone;
+
+    public LightningToMicroUsbAdapter(ILightningPhone lightningPhone) {
+        this.lightningPhone = lightningPhone;
+    }
+
+    @Override
+    public void useMicroUsb() {
+        System.out.println("MicroUsb connected");
+        lightningPhone.useLightning();
+    }
+
+    @Override
+    public void recharge() {
+        lightningPhone.recharge();
+    }
+}
+
+public class AdapterDemo {
+    static void rechargeMicroUsbPhone(IMicroUsbPhone phone) {
+        phone.useMicroUsb();
+        phone.recharge();
+    }
+
+    static void rechargeLightningPhone(ILightningPhone phone) {
+        phone.useLightning();
+        phone.recharge();
+    }
+
+    public static void main(String[] args) {
+        Android android = new Android();
+        Iphone iPhone = new Iphone();
+
+        System.out.println("Recharging android with MicroUsb");
+        rechargeMicroUsbPhone(android);
+
+        System.out.println("Recharging iPhone with Lightning");
+        rechargeLightningPhone(iPhone);
+
+        System.out.println("Recharging iPhone with MicroUsb");
+        rechargeMicroUsbPhone(new LightningToMicroUsbAdapter (iPhone));
+    }
+}
+```
+// Output
+
+```bash
+Recharging android with MicroUsb
+MicroUsb connected
+Recharge started
+Recharge finished
+Recharging iPhone with Lightning
+Lightning connected
+Recharge started
+Recharge finished
+Recharging iPhone with MicroUsb
+MicroUsb connected
+Lightning connected
+Recharge started
+Recharge finished
+```
+
+### Another Java Example
+
+There are the following specifications for the adapter pattern:
+
+- `Target Interface`: This is the desired interface class which will be used by the clients.
+
+- `Adapter class`: This class is a wrapper class which implements the desired target interface and modifies the specific request available from the Adaptee class.
+
+- `Adaptee class`: This is the class which is used by the Adapter class to reuse the existing functionality and modify them for desired use.
+
+- `Client`: This class will interact with the Adapter class.
+
+
+![alt text](image-3.png)
+
+
+- Step 1  ::: Create a `CreditCard` interface (Target interface).
+
+```java
+public interface CreditCard {  
+    public void giveBankDetails();  
+    public String getCreditCard();  
+}// End of the CreditCard interface.
+```
+
+- Step 2 ::: Create a `BankDetails` class (Adaptee class).
+
+```java
+    // This is the adapter class.  
+    public class BankDetails{  
+        private String bankName;  
+        private String accHolderName;  
+        private long accNumber;  
+          
+        public String getBankName() {  
+            return bankName;  
+        }  
+        public void setBankName(String bankName) {  
+            this.bankName = bankName;  
+        }  
+        public String getAccHolderName() {  
+            return accHolderName;  
+        }  
+        public void setAccHolderName(String accHolderName) {  
+            this.accHolderName = accHolderName;  
+        }  
+        public long getAccNumber() {  
+            return accNumber;  
+        }  
+        public void setAccNumber(long accNumber) {  
+            this.accNumber = accNumber;  
+        }  
+    }// End of the BankDetails class.
+```  
+
+- Step 3 ::: Create a `BankCustomer` class (Adapter class).
+
+  
+```java  
+
+// This is the adapter class
+
+import java.io.BufferedReader;  
+import java.io.InputStreamReader;  
+public class BankCustomer extends BankDetails implements CreditCard {  
+ public void giveBankDetails(){  
+  try{  
+   BufferedReader br=new BufferedReader(new InputStreamReader(System.in));  
+      
+   System.out.print("Enter the account holder name :");  
+   String customername=br.readLine();  
+   System.out.print("\n");  
+      
+   System.out.print("Enter the account number:");  
+   long accno=Long.parseLong(br.readLine());  
+   System.out.print("\n");  
+      
+   System.out.print("Enter the bank name :");  
+   String bankname=br.readLine();  
+      
+   setAccHolderName(customername);  
+   setAccNumber(accno);  
+   setBankName(bankname);  
+   }catch(Exception e){  
+        e.printStackTrace();  
+   }  
+  }  
+  @Override  
+  public String getCreditCard() {  
+   long accno=getAccNumber();  
+   String accholdername=getAccHolderName();  
+   String bname=getBankName();  
+          
+   return ("The Account number "+accno+" of "+accholdername+" in "+bname+ "  
+                        bank is valid and authenticated for issuing the credit card. ");  
+  }  
+}//End of the BankCustomer class.
+```
+
+- Step 4 ::: Create a `AdapterPatternDemo` class (client class).
+
+```java
+//This is the client class.  
+public class AdapterPatternDemo {  
+ public static void main(String args[]){  
+  CreditCard targetInterface=new BankCustomer();  
+  targetInterface.giveBankDetails();  
+  System.out.print(targetInterface.getCreditCard());  
+ }   
+}//End of the BankCustomer class.
+```
+
+// Output
+
+```bash    
+Enter the account holder name :Sonoo Jaiswal  
+      
+Enter the account number:10001  
+      
+Enter the bank name :State Bank of India  
+      
+The Account number 10001 of Sonoo Jaiswal in State Bank of India bank is valid and authenticated for issuing the credit card. 
+``` 
 
 ## Bridge Design Pattern 
 
