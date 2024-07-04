@@ -3877,6 +3877,471 @@ warning: withdraw 100 result false
 
 ## Composite Design Pattern 
 
+Composite pattern is a partitioning design pattern. 
+
+The composite pattern describes a group of objects that are treated the same way as a single instance of the same type of object.
+
+`The intent of a composite is to "compose" objects into tree structures to represent part-whole hierarchies. `
+
+Implementing the composite pattern lets clients treat individual objects and compositions uniformly.
+
+![alt text](image-11.png)
+
+It describes how to build a class hierarchy made up of classes for two kinds of objects: primitive and composite. The composite objects let you compose primitive and other composite objects into arbitrarily complex structures.
+
+
+### Why Composite Design Pattern ?
+
+When dealing with Tree-structured data, programmers often have to discriminate between a leaf-node and a branch.
+
+This makes code more complex, and therefore, more error prone. 
+
+The solution is an interface that allows treating complex and primitive objects uniformly.
+
+In object-oriented programming, a composite is an object designed as a composition of one-or-more similar objects, all exhibiting similar functionality. This is known as a "has-a" relationship between objects.
+
+The key concept is that you can manipulate a single instance of the object just as you would manipulate a group of them.
+
+The operations you can perform on all the composite objects often have a least common denominator relationship. For example, if defining a system to portray grouped shapes on a screen, it would be useful to define resizing a group of shapes to have the same effect (in some sense) as resizing a single shape. 
+
+- It defines class hierarchies that contain primitive and complex objects.
+
+- It makes easier to you to add new kinds of components. 
+
+- It provides flexibility of structure with manageable class or interface.
+
+
+### Which Problems Composite Design Pattern Solves ?
+
+- A part-whole hierarchy should be represented so that clients can treat part and whole objects uniformly.
+
+- A part-whole hierarchy should be represented as tree structure.
+
+When defining (1) `Part` objects and (2) `Whole` objects that act as containers for Part objects, clients must treat them separately, which complicates client code.
+
+
+### How Such Problems Composite Design Pattern Solves ?
+
+- Define a unified `Component` interface for both part (`Leaf`) objects and whole (`Composite`) objects.
+    
+- Individual Leaf objects implement the `Component` interface directly, and `Composite` objects forward requests to their child components.
+
+This enables clients to work through the `Component` interface to treat `Leaf` and `Composite` objects uniformly: 
+
+`Leaf` objects perform a request directly, and `Composite` objects forward the request to their child components recursively downwards the tree structure. This makes client classes easier to implement, change, test, and reuse. 
+
+### When Composite Design Pattern can be apply ?
+
+Composite should be used when clients ignore the difference between compositions of objects and individual objects.
+
+If programmers find that they are using multiple objects in the same way, and often have nearly identical code to handle each of them, then composite is a good choice; 
+
+it is less complex in this situation to treat primitives and composites as homogeneous. 
+
+- When you want to represent a full or partial hierarchy of objects.
+
+- When the responsibilities are needed to be added dynamically to the individual objects without affecting other objects. Where the responsibility of object may vary from time to time.
+
+### Structure of Composite Design Pattern
+
+![alt text](image-8.png)
+
+In the above UML class diagram, the `Client` class doesn't refer to the `Leaf` and `Composite` classes directly (separately). Instead, the `Client` refers to the common `Component` interface and can treat `Leaf` and `Composite` uniformly.
+
+The `Leaf` class has no children and implements the `Component` interface directly. 
+
+The `Composite` class maintains a container of child `Component` objects (children) and forwards requests to these `children (for each child in children: child.operation())`. 
+
+The object collaboration diagram shows the run-time interactions: In this example, the `Client` object sends a request to the top-level `Composite object`(of type Component) in the tree structure.
+
+The request is forwarded to (performed on) all child Component objects (`Leaf` and `Composite` objects) downwards the tree structure.
+
+
+`Defining Child-Related Operations`
+
+![alt text](image-9.png)
+
+There are two design variants for defining and implementing child-related operations like adding/removing a child component to/from the container (`add(child)`/`remove(child)`) and accessing a child component (`getChild()`): 
+
+- Design for uniformity: Child-related operations are defined in the `Component` interface. This enables clients to treat `Leaf` and `Composite` objects uniformly. But type safety is lost because clients can perform child-related operations on `Leaf` objects.
+
+- Design for type safety: Child-related operations are defined only in the `Composite` class. Clients must treat `Leaf` and Composite objects differently. But type safety is gained because clients cannot perform child-related operations on `Leaf` objects.
+
+The Composite design pattern emphasizes uniformity over type safety. 
+
+
+![alt text](image-10.png)
+
+
+`Component`
+
+- is the abstraction for all components, including composite ones.
+
+- declares the interface for objects in the composition.
+
+- (optional) defines an interface for accessing a component's parent in the recursive structure, and implements it if that's appropriate.
+
+`Leaf`
+
+- represents leaf objects in the composition.
+
+- implements all Component methods.
+
+`Composite`
+
+- represents a composite Component (component having children).
+
+- implements methods to manipulate children.
+
+- implements all Component methods, generally by delegating them to its children.
+
+
+Client uses the component class interface to interact with objects in the composition structure. If recipient is the leaf then request will be handled directly. If recipient is a composite, then it usually forwards the request to its child for performing the additional operations.
+
+### C++ Example
+
+```C++
+#include <iostream>
+#include <string>
+#include <list>
+#include <memory>
+#include <stdexcept>
+
+typedef double Currency;
+
+// declares the interface for objects in the composition.
+class Equipment { // Component
+public:
+  // implements default behavior for the interface common to all classes, as appropriate.
+  virtual const std::string& getName() {
+    return name;
+  }
+  virtual void setName(const std::string& name_) {
+    name = name_;
+  }
+  virtual Currency getNetPrice() {
+    return netPrice;
+  }
+  virtual void setNetPrice(Currency netPrice_) {
+    netPrice = netPrice_;
+  }
+  // declares an interface for accessing and managing its child components.
+  virtual void add(std::shared_ptr<Equipment>) = 0;
+  virtual void remove(std::shared_ptr<Equipment>) = 0;
+  virtual ~Equipment() = default;
+protected:
+  Equipment() :name(""), netPrice(0) {}
+  Equipment(const std::string& name_) :name(name_), netPrice(0) {}
+private:
+  std::string name;
+  Currency netPrice;
+};
+
+// defines behavior for components having children.
+class CompositeEquipment : public Equipment { // Composite
+public:
+  // implements child-related operations in the Component interface.
+  virtual Currency getNetPrice() override {
+    Currency total = Equipment::getNetPrice();
+    for (const auto& i:equipment) {
+      total += i->getNetPrice();
+    }
+    return total;
+  }
+  virtual void add(std::shared_ptr<Equipment> equipment_) override {
+    equipment.push_front(equipment_.get());
+  }
+  virtual void remove(std::shared_ptr<Equipment> equipment_) override {
+    equipment.remove(equipment_.get());
+  }
+protected:
+  CompositeEquipment() :equipment() {}
+  CompositeEquipment(const std::string& name_) :equipment() {
+    setName(name_);
+  }
+private:
+  // stores child components.
+  std::list<Equipment*> equipment;
+};
+
+// represents leaf objects in the composition.
+class FloppyDisk : public Equipment { // Leaf
+public:
+  FloppyDisk(const std::string& name_) {
+    setName(name_);
+  }
+  // A leaf has no children.
+  void add(std::shared_ptr<Equipment>) override {
+    throw std::runtime_error("FloppyDisk::add");
+  }
+  void remove(std::shared_ptr<Equipment>) override {
+    throw std::runtime_error("FloppyDisk::remove");
+  }
+};
+
+class Chassis : public CompositeEquipment {
+public:
+  Chassis(const std::string& name_) {
+    setName(name_);
+  }
+};
+
+int main() {
+  // The smart pointers prevent memory leaks.
+  std::shared_ptr<FloppyDisk> fd1 = std::make_shared<FloppyDisk>("3.5in Floppy");
+  fd1->setNetPrice(19.99);
+  std::cout << fd1->getName() << ": netPrice=" << fd1->getNetPrice() << '\n';
+
+  std::shared_ptr<FloppyDisk> fd2 = std::make_shared<FloppyDisk>("5.25in Floppy");
+  fd2->setNetPrice(29.99);
+  std::cout << fd2->getName() << ": netPrice=" << fd2->getNetPrice() << '\n';
+
+  std::unique_ptr<Chassis> ch = std::make_unique<Chassis>("PC Chassis");
+  ch->setNetPrice(39.99);
+  ch->add(fd1);
+  ch->add(fd2);
+  std::cout << ch->getName() << ": netPrice=" << ch->getNetPrice() << '\n';
+
+  fd2->add(fd1);
+}
+```
+// Output
+
+```bash
+3.5in Floppy: netPrice=19.99
+5.25in Floppy: netPrice=29.99
+PC Chassis: netPrice=89.97
+terminate called after throwing an instance of 'std::runtime_error'
+  what():  FloppyDisk::add
+```
+
+### Java Example
+
+![alt text](image-12.png)
+
+- Step 1 ::: Create an `Employee` interface that will be treated as a component.
+
+```java
+    // this is the Employee interface i.e. Component.  
+    public interface Employee {  
+        public  int getId();  
+        public String getName();  
+        public double getSalary();  
+        public void print();  
+        public void add(Employee employee);  
+        public void remove(Employee employee);  
+        public Employee getChild(int i);  
+    }// End of the Employee interface.
+```  
+- Step 2 ::: Create a `BankManager` class that will be treated as a `Composite` and implements Employee interface.
+
+```java
+    // this is the BankManager class i.e. Composite.  
+    import java.util.ArrayList;  
+    import java.util.Iterator;  
+    import java.util.List;  
+    public class BankManager implements Employee {  
+         private int id;  
+         private String name;  
+         private double salary;  
+      
+         public BankManager(int id,String name,double salary) {  
+          this.id=id;      
+          this.name = name;  
+          this.salary = salary;  
+         }  
+             List<Employee> employees = new ArrayList<Employee>();  
+         @Override  
+         public void add(Employee employee) {  
+            employees.add(employee);  
+         }  
+            @Override  
+         public Employee getChild(int i) {  
+          return employees.get(i);  
+         }  
+         @Override  
+         public void remove(Employee employee) {  
+          employees.remove(employee);  
+         }    
+         @Override  
+         public int getId()  {  
+          return id;  
+         }  
+         @Override  
+         public String getName() {  
+          return name;  
+         }  
+        @Override  
+         public double getSalary() {  
+          return salary;  
+         }  
+         @Override  
+         public void print() {  
+          System.out.println("==========================");  
+          System.out.println("Id ="+getId());  
+          System.out.println("Name ="+getName());  
+          System.out.println("Salary ="+getSalary());  
+          System.out.println("==========================");  
+            
+          Iterator<Employee> it = employees.iterator();  
+            
+              while(it.hasNext())  {  
+                Employee employee = it.next();  
+                employee.print();  
+             }  
+         }  
+    }// End of the BankManager class. 
+``` 
+
+- Step 3 ::: Create a `Cashier` class that will be treated as a `leaf` and it will implement to the `Employee` interface.
+
+```java
+public  class Cashier implements Employee{  
+    /* 
+         In this class,there are many methods which are not applicable to cashier because 
+         it is a leaf node. 
+     */  
+        private int id;  
+            private String name;  
+        private double salary;  
+        public Cashier(int id,String name,double salary)  {  
+            this.id=id;  
+            this.name = name;  
+            this.salary = salary;  
+        }  
+        @Override  
+        public void add(Employee employee) {  
+            //this is leaf node so this method is not applicable to this class.  
+        }  
+        @Override  
+        public Employee getChild(int i) {  
+            //this is leaf node so this method is not applicable to this class.  
+            return null;  
+        }  
+        @Override  
+        public int getId() {  
+            // TODO Auto-generated method stub  
+            return id;  
+        }  
+        @Override  
+        public String getName() {  
+            return name;  
+        }  
+        @Override  
+        public double getSalary() {  
+            return salary;  
+        }  
+        @Override  
+        public void print() {  
+            System.out.println("==========================");  
+            System.out.println("Id ="+getId());  
+            System.out.println("Name ="+getName());  
+            System.out.println("Salary ="+getSalary());  
+            System.out.println("==========================");  
+        }  
+        @Override  
+        public void remove(Employee employee) {  
+            //this is leaf node so this method is not applicable to this class.  
+        }  
+}
+```
+
+- Step 4 ::: Create a `Accountant` class that will also be treated as a `leaf` and it will implement to the `Employee` interface.
+
+```java
+public class Accountant implements Employee{  
+/* 
+    In this class,there are many methods which are not applicable to cashier because 
+    it is a leaf node. 
+*/  
+    private int id;  
+    private String name;  
+    private double salary;  
+   public Accountant(int id,String name,double salary)  {  
+       this.id=id;  
+       this.name = name;  
+       this.salary = salary;  
+   }  
+   @Override  
+   public void add(Employee employee) {  
+       //this is leaf node so this method is not applicable to this class.  
+   }  
+   @Override  
+   public Employee getChild(int i) {  
+       //this is leaf node so this method is not applicable to this class.  
+       return null;  
+   }  
+   @Override  
+    public int getId() {  
+        // TODO Auto-generated method stub  
+        return id;  
+   }  
+   @Override  
+   public String getName() {  
+       return name;  
+   }  
+   @Override  
+   public double getSalary() {  
+       return salary;  
+   }  
+   @Override  
+   public void print() {  
+       System.out.println("=========================");  
+       System.out.println("Id ="+getId());  
+       System.out.println("Name ="+getName());  
+       System.out.println("Salary ="+getSalary());  
+       System.out.println("=========================");  
+   }  
+  @Override  
+   public void remove(Employee employee) {  
+       //this is leaf node so this method is not applicable to this class.  
+   }  
+}
+```
+
+- Step 5 ::: Create a `CompositePatternDemo` class that will also be treated as a `Client` and we will use the `Employee` interface.
+
+```java
+public class CompositePatternDemo {  
+    public static void main(String args[]){  
+         Employee emp1=new Cashier(101,"Sohan Kumar", 20000.0);  
+         Employee emp2=new Cashier(102,"Mohan Kumar", 25000.0);  
+         Employee emp3=new Accountant(103,"Seema Mahiwal", 30000.0);   
+         Employee manager1=new BankManager(100,"Ashwani Rajput",100000.0);  
+            
+          manager1.add(emp1);  
+          manager1.add(emp2);  
+          manager1.add(emp3);  
+          manager1.print();  
+        }  
+}
+```
+
+// Output
+
+```bash
+    ==========================  
+    Id =100  
+    Name =Ashwani Rajput  
+    Salary =100000.0  
+    ==========================  
+    ==========================  
+    Id =101  
+    Name =Sohan Kumar  
+    Salary =20000.0  
+    ==========================  
+    ==========================  
+    Id =102  
+    Name =Mohan Kumar  
+    Salary =25000.0  
+    ==========================  
+    =========================  
+    Id =103  
+    Name =Seema Mahiwal  
+    Salary =30000.0  
+    ========================= 
+```
+
 ## Decorator Design Pattern 
 
 ## Facade Design Pattern 
