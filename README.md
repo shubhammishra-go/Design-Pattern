@@ -5204,7 +5204,7 @@ Use sharing to support large numbers of similar objects efficiently.
 
 In simple words it says that just "to reuse already existing similar kind of objects by storing them and create new object when no matching object is found".
 
-![alt text](image-20.png)   -------->   ![alt text](image-22.png)
+![alt text](image-20.png)   ![alt text](image-23.png)   ![alt text](image-22.png)
 
 The Flyweight pattern defines a structure for sharing objects.
 
