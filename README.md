@@ -5558,6 +5558,212 @@ Drawing THICK content in color : BLUE
 
 ## Proxy Design Pattern 
 
+Proxy means ‘in place of’, representing’ or the authority to represent someone else, or a figure that can be used to represent the value of something. Proxy design pattern is also called surrogate, handle, and wrapper.
+
+Proxy is a structural design pattern that lets you provide a substitute or placeholder for another object. A proxy controls access to the original object, allowing you to perform something either before or after the request gets through to the original object.
+
+![alt text](image-25.png)
+
+A proxy, in its most general form, is a class functioning as an interface to something else. 
+
+The proxy could interface to anything : a network connection, a large object in memory, a file, or some other resource that is expensive or impossible to duplicate. 
+
+In short, a proxy is a wrapper or agent object that is being called by the client to access the real serving object behind the scenes.
+
+Use of the proxy can simply be forwarding to the real object, or can provide additional logic. 
+
+In the proxy, extra functionality can be provided, for example caching when operations on the real object are resource intensive, or checking preconditions before operations on the real object are invoked. For the client, usage of a proxy object is similar to using the real object, because both implement the same interface. 
+
+A proxy can be used in many ways. It can act as a local representative for an object in a remote address space.
+
+It can represent a large object that should be loaded on demand. It might protect access to a sensitive object.
+
+Proxies provide a level of indirection to specific properties of objects. Hence they can restrict, enhance, or alter these properties.
+
+### Why Proxy Design Pattern ?
+
+- It provides the protection to the original object from the outside world. as it "provides the control for accessing the original object".
+
+
+### Which Problems Proxy Design Pattern Solves ?
+
+- The access to an object should be controlled.
+
+- Additional functionality should be provided when accessing an object.
+
+When accessing sensitive objects, for example, it should be possible to check that clients have the needed access rights. 
+
+### How Such Problems Proxy Design Pattern Solves ?
+
+Define a separate `Proxy` object that 
+
+- can be used as substitute for another object (`Subject`) and
+
+- implements additional functionality to control the access to this subject.
+
+This makes it possible to work through a `Proxy` object to perform additional functionality when accessing a subject.  For example, to check the access rights of clients accessing a sensitive object. 
+
+To act as substitute for a subject, a proxy must implement the `Subject` interface. `Clients` can't tell whether they work with a subject or its proxy. 
+
+
+### Real World Usecase Senario
+
+- `Virtual Proxy` scenario ::: Consider a situation where there is multiple database call to extract huge size image. Since this is an expensive operation so here we can use the proxy pattern which would create multiple proxies and point to the huge size memory consuming object for further processing. The real object gets created only when a client first requests/accesses the object and after that we can just refer to the proxy to reuse the object. This avoids duplication of the object and hence saving memory.
+
+- `Protective Proxy` scenario ::: It acts as an authorization layer to verify that whether the actual user has access the appropriate content or not. For example, a proxy server which provides restriction on internet access in office. Only the websites and contents which are valid will be allowed and the remaining ones will be blocked.
+
+- `Remote Proxy` scenario ::: A remote proxy can be thought about the stub in the RPC call. The remote proxy provides a local representation of the object which is present in the different address location. Another example can be providing interface for remote resources such as web service or REST resources.
+
+- `Smart Proxy` scenario ::: A smart proxy provides additional layer of security by interposing specific actions when the object is accessed. For example, to check whether the real object is locked or not before accessing it so that no other objects can change it.
+
+
+### Structure of Proxy Design Pattern
+
+![alt text](image-24.png)
+
+In the above UML class diagram, the `Proxy` class implements the `Subject` interface so that it can act as substitute for `Subject` objects.
+
+It maintains a reference (`realSubject`) to the substituted object (`RealSubject`) so that it can forward requests to it (`realSubject.operation()`). 
+
+The sequence diagram shows the run-time interactions: 
+
+The `Client` object works through a `Proxy` object that controls the access to a `RealSubject` object. 
+
+In this example, the `Proxy` forwards the request to the `RealSubject`, which performs the request. 
+
+
+### C++ Example
+
+Before C++ example read this ::: https://www.tutorialspoint.com/cplusplus/subscripting_operator_overloading.htm
+
+As we know, a proxy is a class that provides a modified interface to another class. 
+
+Here is an example - suppose we have an array class that we only want to contain binary digits (1 or 0). Here is a first try:
+
+```c++
+struct array1 {
+    int mArray[10];
+    int & operator[](int i) {
+      /// what to put here
+    }
+}; 
+```
+
+We want `operator[]` to throw if we say something like `a[1] = 42`, but that isn't possible because that `operator only sees the index` of the array, not the value being stored.
+
+We can solve this using a proxy:
+
+```C++
+#include <iostream>
+using namespace std;
+
+struct aproxy {
+    aproxy(int& r) : mPtr(&r) {}
+    void operator = (int n) {
+        if (n > 1 || n < 0) {
+            throw "not binary digit";
+        }
+        *mPtr = n;
+    }
+    int * mPtr;
+};
+
+struct array {
+    int mArray[10];
+    aproxy operator[](int i) {
+        return aproxy(mArray[i]);
+    }
+};
+
+int main() {
+    try {
+        array a;
+        a[0] = 1;   // ok
+        a[0] = 42;  // throws exception
+    }
+    catch (const char * e) {
+        cout << e << endl;
+    }
+}
+```
+
+The proxy class now does our checking for a binary digit and we make the array's `operator[]` return an instance of the proxy which has limited access to the array's internals.
+
+
+### Java Example
+
+![alt text](image-26.png)
+
+- Step 1 ::: Create an OfficeInternetAccess interface.
+
+```java
+    public interface OfficeInternetAccess {  
+        public void grantInternetAccess();  
+}
+```  
+- Step 2 ::: Create a `RealInternetAccess` class that will implement `OfficeInternetAccess` interface for granting the permission to the specific employee.
+
+```java
+public class RealInternetAccess implements OfficeInternetAccess {  
+    private String employeeName;  
+    public RealInternetAccess(String empName) {  
+        this.employeeName = empName;  
+    }  
+    @Override  
+    public void grantInternetAccess() {  
+        System.out.println("Internet Access granted for employee: "+ employeeName);  
+    }  
+}
+```
+
+- Step 3 ::: Create a `ProxyInternetAccess` class that will implement `OfficeInternetAccess` interface for providing the object of `RealInternetAccess` class.
+
+```java
+public class ProxyInternetAccess implements OfficeInternetAccess {  
+           private String employeeName;  
+           private RealInternetAccess  realaccess;  
+               public ProxyInternetAccess(String employeeName) {  
+            this.employeeName = employeeName;  
+        }  
+        @Override  
+        public void grantInternetAccess()   
+        {  
+            if (getRole(employeeName) > 4)   
+            {  
+                realaccess = new RealInternetAccess(employeeName);  
+                realaccess.grantInternetAccess();  
+            }   
+            else   
+            {  
+                System.out.println("No Internet access granted. Your job level is below 5");  
+            }  
+        }  
+        public int getRole(String emplName) {  
+            // Check role from the database based on Name and designation  
+            // return job level or job designation.  
+            return 9;  
+        }  
+}
+```
+
+- Step 4 ::: Now, Create a `ProxyPatternClient` class that can access the internet actually.
+
+```java
+    public class ProxyPatternClient {  
+        public static void main(String[] args)   
+        {  
+            OfficeInternetAccess access = new ProxyInternetAccess("Ashwani Rajput");  
+            access.grantInternetAccess();  
+        }  
+    }
+```  
+
+// Output
+
+```bash    
+No Internet access granted. Your job level is below 5  
+```
+
 ## Aggregate Design Pattern
 
 ## Delegation Design Pattern
