@@ -5033,8 +5033,169 @@ Cost: 1.5; Ingredients: Coffee, Milk
 Cost: 1.7; Ingredients: Coffee, Milk, Sprinkles
 ```
 
-
 ## Facade Design Pattern 
+
+Disctonary Meaning ::: the principal front of a building, that faces on to a street or open space.
+
+Facade is a structural design pattern that provides a simplified interface to a library, a framework, or any other complex set of classes.
+
+Analogous to a façade in architecture, it is an object that serves as a front-facing interface masking more complex underlying or structural code.
+
+Facade shows how to make a single object represent an entire subsystem.
+
+A facade is a representative for a set of objects.
+
+The facade carries out its responsibilities by forwarding messages to the objects it represents.
+
+![alt text](image-16.png)
+
+`"just provide a unified and simplified interface to a set of interfaces in a subsystem, therefore it hides the complexities of the subsystem from the client".`
+
+In other words, Facade Pattern describes a higher-level interface that makes the sub-system easier to use.
+
+### Why Facade Design Pattern ?
+
+Developers often use the facade design pattern when a system is very complex or difficult to understand because the system has many interdependent classes or because its source code is unavailable. 
+
+This pattern hides the complexities of the larger system and provides a simpler interface to the client.
+
+It typically involves a single wrapper class that contains a set of members required by the client.
+
+These members access the system on behalf of the facade client and hide the implementation details. 
+
+- improve the readability and usability of a software library by masking interaction with more complex components behind a single (and often simplified) application programming interface (API).
+
+- provide a context-specific interface to more generic functionality (complete with context-specific input validation).
+
+- serve as a launching point for a broader refactor of monolithic or tightly-coupled systems in favor of more loosely-coupled code
+
+- It shields the clients from the complexities of the sub-system components.
+
+- It promotes loose coupling between subsystems and its clients.
+
+
+### Which Problems Facade Design Pattern Solves ?
+
+- To make a complex subsystem easier to use, a simple interface should be provided for a set of interfaces in the subsystem.
+
+- The dependencies on a subsystem should be minimized.
+
+Clients that access a complex subsystem directly refer to (depend on) many different objects having different interfaces (tight coupling), which makes the clients hard to implement, change, test, and reuse. 
+
+### How Such Problems Facade Design Pattern Solves ?
+
+Define a `Facade` object that 
+
+- implements a simple interface in terms of (by delegating to) the interfaces in the subsystem and may perform additional functionality before/after forwarding a request.
+
+This enables to work through a `Facade` object to minimize the dependencies on a subsystem. 
+
+### When Facade Design Pattern can be apply ?
+
+- When a simple interface is required to access a complex system.
+
+- When a system is very complex or difficult to understand.
+
+- When an entry point is needed to each level of layered software.
+
+- When the abstractions and implementations of a subsystem are tightly coupled.
+
+### Structure of Facade Design Pattern
+
+![alt text](image-17.png)
+
+In this UML class diagram, the `Client` class doesn't access the subsystem classes directly.
+
+Instead, the `Client` works through a `Facade` class that implements a simple interface in terms of (by delegating to) the subsystem classes (`Class1`, `Class2`, and `Class3`).
+
+The `Client` depends only on the simple `Facade` interface and is independent of the complex subsystem.
+
+
+![alt text](image-18.png)
+
+The sequence diagram shows the run-time interactions: The `Client` object works through a `Facade` object that delegates the request to the `Class1`, `Class2`, and `Class3` instances that perform the request. 
+
+
+### C++ Example
+
+This is an abstract example of how a client ("you") interacts with a facade (the "computer") to a complex system (internal computer parts, like CPU and HardDrive). 
+
+```c++
+struct CPU {
+  void Freeze();
+  void Jump(long position);
+  void Execute();
+};
+
+struct HardDrive {
+  char* Read(long lba, int size);
+};
+
+struct Memory {
+  void Load(long position, char* data);
+};
+
+class ComputerFacade {
+ public:
+  void Start() {
+    cpu_.Freeze();
+    memory_.Load(kBootAddress, hard_drive_.Read(kBootSector, kSectorSize));
+    cpu_.Jump(kBootAddress);
+    cpu_.Execute();
+  }
+
+ private:
+  CPU cpu_;
+  Memory memory_;
+  HardDrive hard_drive_;
+};
+
+int main() {
+  ComputerFacade computer;
+  computer.Start();
+}
+```
+
+### Java Example
+
+`Facade` hides the complexities of the system and provides an interface to the client from where the client can access the system. 
+
+```java
+public class Inventory {
+public String checkInventory(String OrderId) {
+    return "Inventory checked";
+}
+}
+
+public class Payment {
+public String deductPayment(String orderID) {
+    return "Payment deducted successfully";
+}
+}
+
+
+public class OrderFacade {
+private Payment pymt = new Payment();
+private Inventory inventry = new Inventory();
+
+public void placeOrder(String orderId) {
+    String step1 = inventry.checkInventory(orderId);
+    String step2 = pymt.deductPayment(orderId);
+    System.out
+            .println("Following steps completed:" + step1
+                    + " & " + step2);
+   }
+}
+
+public class Client {
+       public static void main(String args[]){
+         OrderFacade orderFacade = new OrderFacade();
+         orderFacade.placeOrder("OR123456");
+         System.out.println("Order processing completed");
+       }
+  }
+```
+
 
 ## Flyweight Design Pattern 
 
