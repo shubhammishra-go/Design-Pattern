@@ -5196,8 +5196,365 @@ public class Client {
   }
 ```
 
-
 ## Flyweight Design Pattern 
+
+Flyweight software design pattern refers to an object that minimizes memory usage by sharing some of its data with other similar objects. 
+
+Use sharing to support large numbers of similar objects efficiently. 
+
+In simple words it says that just "to reuse already existing similar kind of objects by storing them and create new object when no matching object is found".
+
+![alt text](image-20.png)   -------->   ![alt text](image-22.png)
+
+The Flyweight pattern defines a structure for sharing objects.
+
+Objects are shared for at least two reasons: efficiency and consistency.
+
+Flyweight focuses on sharing for space efficiency.
+
+Applications that use lots of objects must pay careful attention to the cost of each object. 
+
+Substantial savings can be had by sharing objects instead of replicating them.
+
+But objects can be shared only if they don't define context-dependent state. 
+
+Flyweight objects have no such state. Any additional information they need to perform their task is passed to them when needed. With no context-dependent state, Flyweight objects may be shared freely.
+
+Flyweight shows how to make lots of little objects.
+
+### Why Flyweight Design Pattern ?
+
+The flyweight pattern is useful when dealing with a large number of objects that share simple repeated elements which would use a large amount of memory if they were individually embedded.
+
+It is common to hold shared data in external data structures and pass it to the objects temporarily when they are used. 
+
+For example ::: A classic example are the data structures used representing characters in a word processor. Naively, each character in a document might have a glyph object containing its font outline, font metrics, and other formatting data. However, this would use hundreds or thousands of bytes of memory for each character. Instead, each character can have a reference to a glyph object shared by every instance of the same character in the document. This way, only the position of each character needs to be stored internally. 
+
+
+As a result, flyweight objects can :::
+
+- store intrinsic state that is invariant, context-independent and shareable (for example, the code of character 'A' in a given character set)
+
+- provide an interface for passing in extrinsic state that is variant, context-dependent and can't be shared (for example, the position of character 'A' in a text document)
+
+`Clients` can reuse `Flyweight` objects and pass in extrinsic state as necessary, reducing the number of physically created objects. 
+
+- It reduces the number of objects.
+
+- It reduces the amount of memory and storage devices required if the objects are persisted.
+
+
+### When Flyweight Design Pattern can be apply ?
+
+- When an application uses number of objects.
+
+- When the storage cost is high because of the quantity of objects.
+    
+- When the application does not depend on object identity.
+
+
+### Structure of Flyweight Design Pattern 
+
+![alt text](image-19.png)
+
+The above UML class diagram shows: 
+
+- the `Client` class, which uses the flyweight pattern.
+
+- the `FlyweightFactory` class, which creates and shares `Flyweight` objects.
+
+- the `Flyweight` interface, which takes in extrinsic state and performs an operation.
+
+- the `Flyweight1` class, which implements `Flyweight` and stores intrinsic state.
+
+
+The sequence diagram shows the following run-time interactions: 
+
+- The `Client` object calls `getFlyweight(key)` on the `FlyweightFactory`, which returns a `Flyweight1` object.
+
+- After calling `operation(extrinsicState)` on the returned `Flyweight1` object, the `Client` again calls `getFlyweight(key)` on the `FlyweightFactory`.
+
+- The `FlyweightFactory` returns the already-existing `Flyweight1` object.
+
+
+### Implementation of Flyweight Design Pattern 
+
+A flyweight objects essentially has two kind of attributes – intrinsic and extrinsic.
+
+An `intrinsic` state attribute is stored/shared in the flyweight object, and it is independent of flyweight’s context. As the best practice, we should make intrinsic states immutable.
+
+An `extrinsic` state varies with flyweight’s context, which is why they cannot be shared. Client objects maintain the extrinsic state, and they need to pass this to a flyweight object during object creation.
+
+There are multiple ways to implement the flyweight pattern. 
+
+One example is `mutability` ::: whether the objects storing extrinsic flyweight state can change.
+
+Another example is `Immutable` ::: objects are easily shared, but require creating new extrinsic objects whenever a change in state occurs.
+
+In contrast, mutable objects can share state. Mutability allows better object reuse via the caching and re-initialization of old, unused objects. Sharing is usually nonviable when state is highly variable.
+
+Other primary concerns include `retrieval` (how the end-client accesses the flyweight), `caching` and `concurrency`. 
+
+- `Retrieval` The factory interface for creating or reusing flyweight objects is often a facade for a complex underlying system. 
+
+For example, the factory interface is commonly implemented as a singleton to provide global access for creating flyweights. 
+
+Generally speaking, the retrieval algorithm begins with a request for a new object via the factory interface. 
+
+The request is typically forwarded to an appropriate cache based on what kind of object it is. If the request is fulfilled by an object in the cache, it may be reinitialized and returned. Otherwise, a new object is instantiated. If the object is partitioned into multiple extrinsic sub-components, they will be pieced together before the object is returned. 
+
+- `Caching` There are two ways to cache flyweight objects: maintained and unmaintained caches. 
+
+Objects with highly variable state can be cached with a FIFO structure. This structure maintains unused objects in the cache, with no need to search the cache. 
+
+In contrast, unmaintained caches have less upfront overhead: objects for the caches are initialized in bulk at compile time or startup. Once objects populate the cache, the object retrieval algorithm might have more overhead associated than the push/pop operations of a maintained cache. 
+
+When retrieving extrinsic objects with immutable state one must simply search the cache for an object with the state one desires. If no such object is found, one with that state must be initialized. When retrieving extrinsic objects with mutable state, the cache must be searched for an unused object to reinitialize if no used object is found. If there is no unused object available, a new object must be instantiated and added to the cache. 
+
+Separate caches can be used for each unique subclass of extrinsic object. Multiple caches can be optimized separately, associating a unique search algorithm with each cache. This object caching system can be encapsulated with the chain of responsibility pattern, which promotes loose coupling between components. 
+
+
+- `Concurrency` Special consideration must be taken into account where flyweight objects are created on multiple threads.
+
+If the list of values is finite and known in advance, the flyweights can be instantiated ahead of time and retrieved from a container on multiple threads with no contention. If flyweights are instantiated on multiple threads, there are two options: 
+
+- Make flyweight instantiation single-threaded, thus introducing contention and ensuring one instance per value.
+
+- Allow concurrent threads to create multiple flyweight instances, thus eliminating contention and allowing multiple instances per value.
+
+
+To enable safe sharing between clients and threads, flyweight objects can be made into immutable value objects, where two instances are considered equal if their values are equal. 
+
+
+### C++ Example
+
+The C++ Standard Template Library provides several containers that allow unique objects to be mapped to a key. The use of containers helps further reduce memory usage by removing the need for temporary objects to be created. 
+
+```c++
+#include <iostream>
+#include <map>
+#include <string>
+
+// Instances of Tenant will be the Flyweights
+class Tenant {
+public:
+    Tenant(const std::string& name = "") : m_name(name) {}
+
+    std::string name() const {
+        return m_name;
+    }
+private:
+    std::string m_name;
+};
+
+// Registry acts as a factory and cache for Tenant flyweight objects
+class Registry {
+public:
+    Registry() : tenants() {}
+
+    Tenant& findByName(const std::string& name) {
+        if (!tenants.contains(name)) {
+            tenants[name] = Tenant{name};
+        }
+        return tenants[name];
+    }
+private:
+    std::map<std::string, Tenant> tenants;
+};
+
+// Apartment maps a unique tenant to their room number.
+class Apartment {
+public:
+    Apartment() : m_occupants(), m_registry() {}
+
+    void addOccupant(const std::string& name, int room) {
+        m_occupants[room] = &m_registry.findByName(name);
+    }
+
+    void tenants() {
+        for (const auto &i : m_occupants) {
+            const int& room = i.first;
+            const auto& tenant = i.second;
+            std::cout << tenant->name() << " occupies room " << room << std::endl;
+        }
+    }
+private:
+    std::map<int, Tenant*> m_occupants;
+    Registry m_registry;
+};
+
+int main() {
+    Apartment apartment;
+    apartment.addOccupant("David", 1);
+    apartment.addOccupant("Sarah", 3);
+    apartment.addOccupant("George", 2);
+    apartment.addOccupant("Lisa", 12);
+    apartment.addOccupant("Michael", 10);
+    apartment.tenants();
+
+    return 0;
+}
+```
+
+
+### Java Example
+
+In given example, we are building a Paint Brush application where client can use brushes on three types – THICK, THIN and MEDIUM. All the thick (thin or medium) brush will draw the content in exact similar fashion – only the content color will be different.
+
+```java
+public interface Pen 
+{	
+	public void setColor(String color);
+	public void draw(String content); 
+}
+
+public enum BrushSize {
+	THIN, MEDIUM, THICK
+}
+
+public class ThickPen implements Pen {
+	
+	final BrushSize brushSize = BrushSize.THICK;	//intrinsic state - shareable
+	private String color = null; 					//extrinsic state - supplied by client
+	
+	public void setColor(String color) {
+		this.color = color;
+	}
+
+	@Override
+	public void draw(String content) {
+		System.out.println("Drawing THICK content in color : " + color);
+	}
+}
+
+public class ThinPen implements Pen {
+	
+	final BrushSize brushSize = BrushSize.THIN;
+	private String color = null; 
+	
+	public void setColor(String color) {
+		this.color = color;
+	}
+
+	@Override
+	public void draw(String content) {
+		System.out.println("Drawing THIN content in color : " + color);
+	}
+}
+
+public class MediumPen implements Pen {
+	
+	final BrushSize brushSize = BrushSize.MEDIUM;
+	private String color = null; 
+	
+	public void setColor(String color) {
+		this.color = color;
+	}
+
+	@Override
+	public void draw(String content) {
+		System.out.println("Drawing MEDIUM content in color : " + color);
+	}
+}
+```
+
+Here brush color is extrinsic attribute which will be supplied by client, else everything will remain same for the Pen. So essentially, we will create a pen of certain size only when the color is different. Once another client or context need that pen size and color, we will reuse it.
+
+```java
+import java.util.HashMap;
+
+public class PenFactory 
+{
+	private static final HashMap<String, Pen> pensMap = new HashMap<>();
+
+	public static Pen getThickPen(String color) 
+	{
+		String key = color + "-THICK";
+		
+		Pen pen = pensMap.get(key);
+		
+		if(pen != null) {
+			return pen;
+		} else {
+			pen = new ThickPen();
+			pen.setColor(color);
+			pensMap.put(key, pen);
+		}
+		
+		return pen;
+	}
+	
+	public static Pen getThinPen(String color) 
+	{
+		String key = color + "-THIN";
+		
+		Pen pen = pensMap.get(key);
+		
+		if(pen != null) {
+			return pen;
+		} else {
+			pen = new ThinPen();
+			pen.setColor(color);
+			pensMap.put(key, pen);
+		}
+		
+		return pen;
+	}
+	
+	public static Pen getMediumPen(String color) 
+	{
+		String key = color + "-MEDIUM";
+		
+		Pen pen = pensMap.get(key);
+		
+		if(pen != null) {
+			return pen;
+		} else {
+			pen = new MediumPen();
+			pen.setColor(color);
+			pensMap.put(key, pen);
+		}
+		
+		return pen;
+	}
+}
+```
+
+Let’s test the flyweight pen objects using a client. The client here creates three THIN pens, but in runtime their is only one pen object of thin type and it’s shared with all three invocations.
+
+```java
+public class PaintBrushClient 
+{
+	public static void main(String[] args) 
+	{
+		Pen yellowThinPen1 = PenFactory.getThickPen("YELLOW");	//created new pen
+		yellowThinPen1.draw("Hello World !!");
+		
+		Pen yellowThinPen2 = PenFactory.getThickPen("YELLOW");	//pen is shared
+		yellowThinPen2.draw("Hello World !!");
+		
+		Pen blueThinPen = PenFactory.getThickPen("BLUE");		//created new pen
+		blueThinPen.draw("Hello World !!");
+		
+		System.out.println(yellowThinPen1.hashCode());
+		System.out.println(yellowThinPen2.hashCode());
+		
+		System.out.println(blueThinPen.hashCode());
+	}
+}
+```
+
+// Output
+
+```bash
+Drawing THICK content in color : YELLOW
+Drawing THICK content in color : YELLOW
+Drawing THICK content in color : BLUE
+
+2018699554		//same object
+2018699554		//same object
+1311053135
+```
 
 ## Proxy Design Pattern 
 
