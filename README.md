@@ -5928,7 +5928,7 @@ If the window can't handle the event, the event is dispatched to the application
 - On iOS, it's typical to handle view events in the view controller which manages the view hierarchy, instead of subclassing the view itself. Since a view controller lies in the responder chain after all of its managed subviews, it can intercept any view events and handle them.
 
 
-// Java Servlet
+// Java Servlet Example
 
 A very good example are [java servlet filters](http://www.oracle.com/technetwork/java/filters-137243.html) - pieces of code that are executed before the HTTP request arrives at its target.
 
