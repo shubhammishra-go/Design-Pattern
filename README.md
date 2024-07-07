@@ -6439,6 +6439,289 @@ Document Saved
 
 ## Interpreter Design Pattern
 
+Dictionary Meaning ::: a program that can analyse and execute a program line by line.
+
+Interpreter pattern is a design pattern that specifies how to evaluate sentences in a language.
+
+It represents a grammar as a class hierarchy and implements an interpreter as an operation on instances of these classes.
+
+The basic idea is to have a class for each symbol (terminal or nonterminal) in a specialized computer language.
+
+The syntax tree of a sentence in the language is an instance of the composite pattern and is used to evaluate (interpret) the sentence for a client.
+
+
+### Why Interpreter Design Pattern ?
+
+- It is easier to change and extend the grammar.
+    
+- Implementing the grammar is straightforward.
+
+
+### Which Problems Interpreter Design Pattern Solves ?
+
+When a problem occurs very often, it could be considered to represent it as a sentence in a simple language (Domain Specific Languages) so that an interpreter can solve the problem by interpreting the sentence. 
+
+For example, when many different or complex search expressions must be specified. Implementing (hard-wiring) them directly into a class is inflexible because it commits the class to particular expressions and makes it impossible to specify new expressions or change existing ones independently from (without having to change) the class. 
+
+- A grammar for a simple language should be defined.
+
+- so that sentences in the language can be interpreted.
+
+### How Such Problems Interpreter Design Pattern Solves ?
+
+- Define a grammar for a simple language by defining an `Expression` class hierarchy and implementing an `interpret()` operation.
+
+- Represent a sentence in the language by an abstract syntax tree (AST) made up of `Expression` instances.
+
+- Interpret a sentence by calling `interpret()` on the AST.
+
+The expression objects are composed recursively into a composite/tree structure that is called abstract syntax tree (see Composite pattern). 
+
+The Interpreter pattern doesn't describe how to build an abstract syntax tree. This can be done either manually by a client or automatically by a parser. 
+
+
+### When Interpreter Design Pattern can be apply ?
+
+The interpreter pattern can be used on domain problems which can be expressed in simple language/sentences. Then the problems can be solved by interpreting these sentences. So we get an input, we can understand (interpret) it and then implement certain behaviour based on the interpretation/categorization of the input. 
+
+In interpreter the driver of the behaviour is based on what the input is, the interpretation/categorization of the input.
+
+Basically the Interpreter pattern has limited area where it can be applied. We can discuss the Interpreter pattern only in terms of formal grammars but in this area there are better solutions that is why it is not frequently used.
+
+This pattern can applied for `parsing` the expressions defined in simple grammars and sometimes in simple rule engines.
+
+
+### Real World Usecases
+
+- Specialized database query languages such as `SQL`.
+
+- Specialized computer languages that are often used to describe `communication protocols`.
+
+- Most general-purpose computer languages actually incorporate several specialized languages
+
+### Structure of Interpreter Design Pattern
+
+![alt text](image-33.png)
+
+In the above UML class diagram, the `Client` class refers to the common `AbstractExpression` interface for interpreting an expression `interpret(context)`. 
+
+The `TerminalExpression` class has no children and interprets an expression directly. 
+
+The `NonTerminalExpression` class maintains a container of child expressions (`expressions`) and forwards interpret requests to these `expressions`.
+
+The object collaboration diagram shows the run-time interactions: The `Client` object sends an interpret request to the abstract syntax tree. The request is forwarded to (performed on) all objects downwards the tree structure.
+
+The `NonTerminalExpression` objects (`ntExpr1`,`ntExpr2`) forward the request to their child expressions. 
+
+The `TerminalExpression` objects (`tExpr1`,`tExpr2`,…) perform the interpretation directly. 
+
+
+### C++ Example
+
+```C++
+#include <iostream>
+#include <map>
+#include <cstring>
+
+class Context;
+
+class BooleanExp {
+public:
+  BooleanExp() = default;
+  virtual ~BooleanExp() = default;
+  virtual bool evaluate(Context&) = 0;
+  virtual BooleanExp* replace(const char*, BooleanExp&) = 0;
+  virtual BooleanExp* copy() const = 0;
+};
+
+class VariableExp;
+
+class Context {
+public:
+  Context() :m() {}
+  bool lookup(const VariableExp* key) { return m.at(key); }
+  void assign(VariableExp* key, bool value) { m[key] = value; }
+private:
+  std::map<const VariableExp*, bool> m;
+};
+
+class VariableExp : public BooleanExp {
+public:
+  VariableExp(const char* name_) :name(nullptr) {
+    name = strdup(name_);
+  }
+  virtual ~VariableExp() = default;
+  virtual bool evaluate(Context& aContext) {
+    return aContext.lookup(this);
+  }
+  virtual BooleanExp* replace( const char* name_, BooleanExp& exp ) {
+    if (0 == strcmp(name_, name)) {
+      return exp.copy();
+    } else {
+      return new VariableExp(name);
+    }
+  }
+  virtual BooleanExp* copy() const {
+    return new VariableExp(name);
+  }
+  VariableExp(const VariableExp&) = delete; // rule of three
+  VariableExp& operator=(const VariableExp&) = delete;
+private:
+  char* name;
+};
+
+class AndExp : public BooleanExp {
+public:
+  AndExp(BooleanExp* op1, BooleanExp* op2)
+    :operand1(nullptr), operand2(nullptr) {
+    operand1 = op1;
+    operand2 = op2;
+  }
+  virtual ~AndExp() = default;
+  virtual bool evaluate(Context& aContext) {
+    return operand1->evaluate(aContext) && operand2->evaluate(aContext);
+  }
+  virtual BooleanExp* replace(const char* name_, BooleanExp& exp) {
+    return new AndExp(
+        operand1->replace(name_, exp),
+        operand2->replace(name_, exp)
+      );
+  }
+  virtual BooleanExp* copy() const {
+    return new AndExp(operand1->copy(), operand2->copy());
+  }
+  AndExp(const AndExp&) = delete; // rule of three
+  AndExp& operator=(const AndExp&) = delete;
+private:
+  BooleanExp* operand1;
+  BooleanExp* operand2;
+};
+
+int main() {
+  BooleanExp* expression;
+  Context context;
+  VariableExp* x = new VariableExp("X");
+  VariableExp* y = new VariableExp("Y");
+  expression = new AndExp(x, y);
+
+  context.assign(x, false);
+  context.assign(y, true);
+  bool result = expression->evaluate(context);
+  std::cout << result << '\n';
+
+  context.assign(x, true);
+  context.assign(y, true);
+  result = expression->evaluate(context);
+  std::cout << result << '\n';
+}
+```
+
+// Output 
+
+```bash
+0
+1
+```
+
+### Java Example
+
+![alt text](image-34.png)
+
+- Step 1 ::: Create a `Pattern` interface.
+
+```java
+public interface Pattern {  
+    public String conversion(String exp);  
+}
+```
+
+- Step 2 ::: Create a `InfixToPostfixPattern` class that will allow what kind of pattern you want to convert.
+```java
+import java.util.Stack;  
+public class InfixToPostfixPattern implements Pattern{  
+    @Override  
+    public String conversion(String exp) {  
+       int priority = 0;// for the priority of operators.  
+       String postfix = "";  
+        Stack<Character> s1 = new Stack<Character>();  
+       for (int i = 0; i < exp.length(); i++)  
+        {  
+           char ch = exp.charAt(i);  
+           if (ch == '+' || ch == '-' || ch == '*' || ch == '/'||ch=='%')  
+           {  
+              // check the precedence  
+              if (s1.size() <= 0)  
+                 s1.push(ch);  
+           }  
+           else  
+              {  
+                 Character chTop = (Character) s1.peek();  
+                 if (chTop == '*' || chTop == '/')  
+                    priority = 1;  
+                 else  
+                    priority = 0;  
+                 if (priority == 1)  
+                 {  
+                    if (ch == '*' || ch == '/'||ch=='%')  
+                    {  
+                       postfix += s1.pop();  
+                                                  i--;  
+                    }  
+                    else  
+                    { // Same  
+                       postfix += s1.pop();  
+                       i--;  
+                    }  
+                 }  
+                 else  
+                 {  
+                    if (ch == '+' || ch == '-')  
+                    {  
+                       postfix += s1.pop();  
+                       s1.push(ch);  
+                    }  
+                    else  
+                       s1.push(ch);  
+                 }  
+              }  
+           }  
+           else  
+           {               
+              postfix += ch;  
+           }  
+        }  
+        int len = s1.size();  
+        for (int j = 0; j < len; j++)  
+           postfix += s1.pop();  
+        return postfix;  
+          
+    } // End of the InfixToPostfixPattern class.
+```
+
+- Step 3 ::: Create a `InterpreterPatternClient` class that will use `InfixToPostfix` Conversion.
+
+```java
+public class InterpreterPatternClient {  
+     public static void main(String[] args)  
+        {  
+            String infix = "a+b*c";  
+              
+            InfixToPostfixPattern ip=new InfixToPostfixPattern();  
+              
+            String postfix = ip.conversion(infix);  
+            System.out.println("Infix:   " + infix);  
+            System.out.println("Postfix: " + postfix);  
+       }  
+}
+```
+
+// Output
+
+```bash
+Infix:   a+b*c  
+Postfix: abc*+ 
+```
+
 ## Iterator Design Pattern
 
 ## Mediator Design Pattern
