@@ -6443,6 +6443,8 @@ Dictionary Meaning ::: a program that can analyse and execute a program line by 
 
 Interpreter pattern is a design pattern that specifies how to evaluate sentences in a language.
 
+Means It defines grammar of a language.
+
 It represents a grammar as a class hierarchy and implements an interpreter as an operation on instances of these classes.
 
 The basic idea is to have a class for each symbol (terminal or nonterminal) in a specialized computer language.
@@ -6723,6 +6725,214 @@ Postfix: abc*+
 ```
 
 ## Iterator Design Pattern
+
+Iterator is a behavioral design pattern that lets you traverse elements of a collection without exposing its underlying representation (list, stack, tree, etc.).
+
+Provide a way to access the elements of an aggregate object sequentially without exposing its underlying representation. 
+
+So, Iterator abstracts the way you access and traverse objects in an aggregate. 
+
+an iterator is used to traverse a container and access the container's elements.
+
+The Iterator pattern is also known as `Cursor`. // so try to relate it as ietrator given by STL in c++ for any Data structure.
+
+![alt text](image-37.png)
+
+The iterator pattern decouples algorithms from containers; in some cases, algorithms are necessarily container-specific and thus cannot be decoupled. 
+
+For example, the hypothetical algorithm SearchForElement can be implemented generally using a specified type of iterator rather than implementing it as a container-specific algorithm. This allows SearchForElement to be used on any container that supports the required type of iterator.
+
+### Why Iterator Design Pattern ?
+
+- It supports variations in the traversal of a collection.
+    
+- It simplifies the interface to the collection.
+
+
+### Which Problems Iterator Design Pattern Solves ?
+
+- The elements of an aggregate object should be accessed and traversed without exposing its representation (`data structures`).
+
+- New traversal operations should be defined for an aggregate object without changing its interface.
+
+Defining access and traversal operations in the aggregate interface is inflexible because it commits the aggregate to particular access and traversal operations and makes it impossible to add new operations later without having to change the aggregate interface. 
+
+### How Such Problems Iterator Design Pattern Solves ?
+
+- Define a separate (iterator) object that encapsulates accessing and traversing an aggregate object.
+
+- Clients use an iterator to access and traverse an aggregate without knowing its representation (data structures).
+
+Different iterators can be used to access and traverse an aggregate in different ways. 
+
+New access and traversal operations can be defined independently by defining new iterators. 
+
+### When Iterator Design Pattern can be apply ?
+
+- When you want to access a collection of objects without exposing its internal representation.
+    
+- When there are multiple traversals of objects need to be supported in the collection.
+
+
+### Structure of Iterator Design Pattern
+
+![alt text](image-35.png)
+
+In the above UML class diagram, the `Client` class refers (1) to the `Aggregate` interface for creating an `Iterator` object (`createIterator()`) and (2) to the `Iterator` interface for traversing an `Aggregate` object (`next()`,`hasNext()`). 
+
+The `Iterator1` class implements the `Iterator` interface by accessing the `Aggregate1` class. 
+
+The UML sequence diagram shows the run-time interactions: The `Client` object calls `createIterator()` on an `Aggregate1` object, which creates an `Iterator1` object and returns it to the `Client`. The `Client` uses then `Iterator1` to traverse the elements of the `Aggregate1` object. 
+
+
+### C++ Example
+
+C++ implements iterators with the semantics of pointers in that language. 
+
+In C++, a class can overload all of the pointer operations, so an iterator can be implemented that acts more or less like a pointer, complete with dereference, increment, and decrement.
+
+This has the advantage that C++ algorithms such as `std::sort` can immediately be applied to plain old memory buffers, and that there is no new syntax to learn.
+
+However, it requires an "end" iterator to test for equality, rather than allowing an iterator to know that it has reached the end.
+
+In C++ language, we say that an iterator models the iterator concept. 
+
+```C++
+#include <iostream>
+#include <stdexcept>
+#include <initializer_list>
+		
+class Vector {
+public:
+  using iterator = double*;
+  iterator begin() { return elem; }
+  iterator end() { return elem + sz; }
+  
+  Vector(std::initializer_list<double> lst) :elem(nullptr), sz(0) {
+    sz = lst.size();
+    elem = new double[sz];
+    double* p = elem;
+    for (auto i = lst.begin(); i != lst.end(); ++i, ++p) {
+      *p = *i;
+    }
+  }  
+  ~Vector() { delete[] elem; }
+  int size() const { return sz; }
+  double& operator[](int n) {
+    if (n < 0 || n >= sz) throw std::out_of_range("Vector::operator[]");
+    return elem[n];
+  }
+  Vector(const Vector&) = delete; // rule of three
+  Vector& operator=(const Vector&) = delete;
+private:
+  double* elem;
+  int sz;
+};
+
+int main() {
+  Vector v = {1.1*1.1, 2.2*2.2};
+  
+  for (const auto& x : v) {
+    std::cout << x << '\n';
+  }
+  for (auto i = v.begin(); i != v.end(); ++i) {
+    std::cout << *i << '\n';
+  }
+  for (auto i = 0; i <= v.size(); ++i) {
+    std::cout << v[i] << '\n';
+  } 
+}
+```
+
+// Output
+
+```bash
+1.21
+4.84
+1.21
+4.84
+1.21
+4.84
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  Vector::operator[]
+```
+
+### Java Example
+
+![alt text](image-36.png)
+
+- Step 1 ::: Create a `Iterartor` interface.
+
+```java
+    public interface Iterator {  
+        public boolean hasNext();  
+        public Object next();  
+    }
+```  
+
+- Step 2 ::: Create a `Container` interface.
+
+```java
+    public interface Container {  
+        public Iterator getIterator();  
+    }// End of the Iterator interface.
+```  
+
+- Step 3 ::: Create a `CollectionofNames` class that will implement `Container` interface.
+
+```java
+
+    public class CollectionofNames implements Container {  
+    public String name[]={"Ashwani Rajput", "Soono Jaiswal","Rishi Kumar","Rahul Mehta","Hemant Mishra"};   
+          
+    @Override  
+        public Iterator getIterator() {  
+            return new CollectionofNamesIterate() ;  
+        }  
+        private class CollectionofNamesIterate implements Iterator{  
+            int i;  
+            @Override  
+            public boolean hasNext() {  
+                if (i<name.length){  
+                    return true;  
+                }  
+                return false;  
+            }  
+            @Override  
+            public Object next() {  
+                if(this.hasNext()){  
+                    return name[i++];  
+                }  
+                return null;      
+            }  
+        }  
+    }  
+```
+
+- Step 4 ::: Create a `IteratorPatternDemo` class.
+
+```java
+    public class IteratorPatternDemo {  
+        public static void main(String[] args) {  
+              CollectionofNames cmpnyRepository = new CollectionofNames();  
+                
+              for(Iterator iter = cmpnyRepository.getIterator(); iter.hasNext();){  
+                  String name = (String)iter.next();  
+                  System.out.println("Name : " + name);  
+               }      
+        }  
+    }
+```  
+
+// Output
+
+```bash
+Name : Ashwani Rajput  
+Name : Soono Jaiswal  
+Name : Rishi Kumar  
+Name : Rahul Mehta  
+Name : Hemant Mishra
+```
 
 ## Mediator Design Pattern
 
