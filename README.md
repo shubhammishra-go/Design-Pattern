@@ -6936,6 +6936,342 @@ Name : Hemant Mishra
 
 ## Mediator Design Pattern
 
+Mediator pattern defines an object that encapsulates how a set of objects interact. 
+
+This pattern is considered to be a behavioral pattern due to the way it can alter the program's running behavior.
+
+The mediator provides the indirection needed for `loose coupling`. 
+
+![alt text](image-38.png)
+
+Mediator promotes loose coupling by keeping objects from referring to each other explicitly, and it allows their interaction to vary independently. 
+
+In object-oriented programming, programs often consist of many classes. Business logic and computation are distributed among these classes. However, as more classes are added to a program, especially during maintenance and/or refactoring, the problem of communication between these classes may become more complex. This makes the program harder to read and maintain. Furthermore, it can become difficult to change the program, since any change may affect code in several other classes. 
+
+With the mediator pattern, communication between objects is encapsulated within a mediator object.
+
+Objects no longer communicate directly with each other, but instead communicate through the mediator. This reduces the dependencies between communicating objects, thereby reducing coupling. 
+
+The essence of the mediator pattern is to "define an object that encapsulates how a set of objects interact". It promotes loose coupling by keeping objects from referring to each other explicitly, and it allows their interaction to be varied independently.Client classes can use the mediator to send messages to other clients, and can receive messages from other clients via an event on the mediator class. 
+
+### Why Mediator Design Pattern ?
+
+- It decouples the number of classes.
+
+- It simplifies object protocols.
+
+- It centralizes the control.
+
+- The individual components become simpler and much easier to deal with because they don't need to pass messages to one another.
+
+- The components don't need to contain logic to deal with their intercommunication and therefore, they are more generic. 
+
+### Which Problems Mediator Design Pattern Solves ?
+
+Tightly coupled objects are hard to implement, change, test, and reuse because they refer to and know about many different objects. 
+
+- Tight coupling between a set of interacting objects should be avoided.
+    
+- It should be possible to change the interaction between a set of objects independently.
+
+Defining a set of interacting objects by accessing and updating each other directly is inflexible because it tightly couples the objects to each other and makes it impossible to change the interaction independently from (without having to change) the objects. And it stops the objects from being reusable and makes them hard to test. 
+
+### How Such Problems Mediator Design Pattern Solves ?
+
+- Define a separate (mediator) object that encapsulates the interaction between a set of objects.
+    
+- Objects delegate their interaction to a mediator object instead of interacting with each other directly.
+
+The objects interact with each other indirectly through a mediator object that controls and coordinates the interaction. 
+
+This makes the objects loosely coupled. They only refer to and know about their mediator object and have no explicit knowledge of each other. 
+
+### When Mediator Design Pattern can be apply ?
+
+- It is commonly used in message-based systems likewise chat applications.
+    
+- When the set of objects communicate in complex but in well-defined ways.
+
+### Structure of Mediator Design Pattern
+
+::: Participants :::
+
+- `Mediator` :::  defines the interface for communication between Colleague objects
+
+- `ConcreteMediator` ::: implements the mediator interface and coordinates communication between Colleague objects. It is aware of all of the Colleagues and their purposes with regards to inter-communication.
+
+- `Colleague` ::: defines the interface for communication with other Colleagues through its Mediator
+
+- `ConcreteColleague` ::: implements the Colleague interface and communicates with other Colleagues through its Mediator 
+
+![alt text](image-39.png)
+
+In the above UML class diagram, the `Colleague1` and `Colleague2` classes do not refer to (and update) each other directly. Instead, they refer to the common `Mediator` interface for controlling and coordinating interaction (`mediate()`), which makes them independent from one another with respect to how the interaction is carried out. 
+
+The `Mediator1` class implements the interaction between `Colleague1` and `Colleague2`. 
+
+The UML sequence diagram shows the run-time interactions. In this example, a `Mediator1` object mediates (controls and coordinates) the interaction between `Colleague1` and `Colleague2` objects. 
+
+Assuming that Colleague1 wants to interact with `Colleague2` (to update/synchronize its state, for example), `Colleague1` calls mediate(this) on the `Mediator1` object, which gets the changed data from `Colleague1` and performs an `action2()` on `Colleague2`.
+
+Thereafter, `Colleague2` calls mediate(this) on the `Mediator1` object, which gets the changed data from `Colleague2` and performs an `action1()` on `Colleague1`. 
+
+
+### C++ Example
+
+![alt text](image-42.png)
+
+![alt text](image-43.png)
+
+![alt text](image-44.png)
+
+![alt text](image-45.png)
+
+// Output
+
+```bash
+ConcreteColleague2::ReceiveMessage()...Message = I am colleague1
+ConcreteColleague1::ReceiveMessage()...Message = I am colleague2
+```
+
+### Java Example
+
+In the following example, a Mediator object controls the values of several Storage objects, forcing the user code to access the stored values through the mediator. When a storage object wants to emit an event indicating that its value has changed, it also goes back to the mediator object (via the method notifyObservers) that controls the list of the observers (implemented using the observer pattern). 
+
+```java
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
+
+class Storage<T> {
+    T value;
+    
+    T getValue() {
+        return value;
+    }
+    void setValue(Mediator<T> mediator, String storageName, T value) {
+        this.value = value;
+        mediator.notifyObservers(storageName);
+    }
+}
+
+class Mediator<T> {
+    private final HashMap<String, Storage<T>> storageMap = new HashMap<>();
+    private final CopyOnWriteArrayList<Consumer<String>> observers = new CopyOnWriteArrayList<>();
+    
+    public void setValue(String storageName, T value) {
+        Storage storage = storageMap.computeIfAbsent(storageName, name -> new Storage<>());
+        storage.setValue(this, storageName, value);
+    }
+    
+    public Optional<T> getValue(String storageName) {
+        return Optional.ofNullable(storageMap.get(storageName)).map(Storage::getValue);
+    }
+    
+    public void addObserver(String storageName, Runnable observer) {
+        observers.add(eventName -> {
+            if (eventName.equals(storageName)) {
+                observer.run();
+            }
+        });
+    }
+    
+    void notifyObservers(String eventName) {
+        observers.forEach(observer -> observer.accept(eventName));
+    }
+}
+
+public class MediatorDemo {
+    public static void main(String[] args) {
+        Mediator<Integer> mediator = new Mediator<>();
+        mediator.setValue("bob", 20);
+        mediator.setValue("alice", 24);
+        mediator.getValue("alice").ifPresent(age -> System.out.println("age for alice: " + age));
+        
+        mediator.addObserver("bob", () -> {
+            System.out.println("new age for bob: " + mediator.getValue("bob").orElseThrow(RuntimeException::new));
+        });
+        mediator.setValue("bob", 21);
+    }
+}
+```
+
+
+### Another Java Example
+
+::: Participants :::
+
+- `ApnaChatroom` :- defines the interface for interacting with participants.
+
+- `ApnaChatroomImpl` :- implements the operations defined by the Chatroom interface. The operations are managing the interactions between the objects: when one participant sends a message, the message is sent to the other participants.
+
+- `Participant` :- defines an interface for the users involved in chatting.
+
+- `User1`, `User2`, ...`UserN` :- implements Participant interface; the participant can be a number of users involved in chatting. But each Participant will keep only a reference to the ApnaChatRoom.
+
+![alt text](image-40.png)
+
+
+- Step 1 ::: Create a `ApnaChatRoom` interface.
+
+```java
+    //This is an interface.  
+    public interface ApnaChatRoom {  
+          
+        public void showMsg(String msg, Participant p);  
+      
+    }// End of the ApnaChatRoom interface. 
+``` 
+
+- Step 2 ::: Create a `ApnaChatRoomIml` class that will implement `ApnaChatRoom` interface and will also use the number of participants involved in chatting through `Participant` interface. 
+
+```java
+//This is a class.  
+import java.text.DateFormat;  
+import java.text.SimpleDateFormat;  
+import java.util.Date;  
+  
+public class ApnaChatRoomImpl implements ApnaChatRoom{  
+    //get current date time   
+    DateFormat dateFormat = new SimpleDateFormat("E dd-MM-yyyy hh:mm a");  
+    Date date = new Date();  
+    @Override  
+    public void showMsg(String msg, Participant p) {  
+          
+        System.out.println(p.getName()+"'gets message: "+msg);  
+        System.out.println("\t\t\t\t"+"["+dateFormat.format(date).toString()+"]");    
+    }     
+}// End of the ApnaChatRoomImpl class.
+```
+
+- Step 3 ::: Create a `Participant` abstract class.
+
+```java
+    //This is an abstract class.  
+    public abstract class Participant {  
+          public abstract void sendMsg(String msg);  
+          public abstract void setname(String name);  
+          public abstract String getName();  
+    }// End of the Participant abstract class.
+``` 
+
+- Step 4 ::: Create a `User1` class that will extend `Participant` abstract class and will use the `ApnaChatRoom` interface.
+
+```java
+public class User1 extends Participant {  
+      
+    private String name;  
+    private ApnaChatRoom chat;  
+      
+    @Override  
+    public void sendMsg(String msg) {  
+    chat.showMsg(msg,this);  
+          
+    }  
+  
+    @Override  
+    public void setname(String name) {  
+        this.name=name;  
+    }  
+  
+    @Override  
+    public String getName() {  
+        return name;  
+    }  
+      
+    public User1(ApnaChatRoom chat){  
+        this.chat=chat;  
+    }     
+      
+}// End of the User1 class.
+public class User1 extends Participant {  
+      
+    private String name;  
+    private ApnaChatRoom chat;  
+      
+    @Override  
+    public void sendMsg(String msg) {  
+    chat.showMsg(msg,this);  
+          
+    }  
+  
+    @Override  
+    public void setname(String name) {  
+        this.name=name;  
+    }  
+  
+    @Override  
+    public String getName() {  
+        return name;  
+    }  
+      
+    public User1(ApnaChatRoom chat){  
+        this.chat=chat;  
+    }     
+      
+}// End of the User1 class. 
+```
+
+- Step 5 ::: Create a `User2` class that will extend `Participant` abstract class and will use the `ApnaChatRoom` interface.
+
+```java  
+public class User2 extends Participant {  
+  
+    private String name;  
+    private ApnaChatRoom chat;  
+      
+    @Override  
+    public void sendMsg(String msg) {  
+    this.chat.showMsg(msg,this);  
+          
+    }  
+  
+    @Override  
+    public void setname(String name) {  
+        this.name=name;  
+    }  
+  
+    @Override  
+    public String getName() {  
+        return name;  
+    }  
+      
+    public User2(ApnaChatRoom chat){  
+        this.chat=chat;  
+    }  
+  
+      
+      
+}  
+// End of the User2 class. 
+``` 
+
+- Step 6 ::: Create a `MediatorPatternDemo` class that will use participants involved in chatting.
+
+```java
+public class MediatorPatternDemo {  
+      
+    public static void main(String args[])  
+    {  
+          
+          ApnaChatRoom chat = new ApnaChatRoomImpl();  
+      
+          User1 u1=new User1(chat);  
+          u1.setname("Ashwani Rajput");  
+          u1.sendMsg("Hi Ashwani! how are you?");  
+        
+                
+          User2 u2=new User2(chat);  
+          u2.setname("Soono Jaiswal");  
+          u2.sendMsg("I am Fine ! You tell?");  
+    }  
+  
+}// End of the MediatorPatternDemo class. 
+```
+
+![alt text](image-41.png)
+
 ## Memento Design Pattern
 
 ## Observer Design Pattern
