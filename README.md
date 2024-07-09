@@ -7274,6 +7274,518 @@ public class MediatorPatternDemo {
 
 ## Memento Design Pattern
 
+Memento pattern is a software design pattern that exposes the `private internal state` of an object.
+
+One example of how this can be used is to restore an object to its previous state (undo via rollback), another is versioning, another is custom serialization. 
+
+The memento pattern is implemented with three objects: the `originator`, a `caretaker` and a `memento`.
+
+The `originator` is some object that has an internal state.
+
+The `caretaker` is going to do something to the originator, but wants to be able to undo the change.
+
+The `caretaker` first asks the originator for a memento object. Then it does whatever operation (or sequence of operations) it was going to do. To roll back to the state before the operations, it returns the memento object to the originator. The memento object itself is an opaque object (one which the caretaker cannot, or should not, change). 
+
+When using this pattern, care should be taken if the originator may change other objects or resources—the memento pattern operates on a single object. 
+
+Classic examples of the memento pattern include a `pseudorandom number generator` (each consumer of the PRNG serves as a caretaker who can initialize the `PRNG` (the originator) with the same seed (the memento) to produce an identical sequence of pseudorandom numbers) and the state in a finite state machine. 
+
+The Memento Pattern was created by Noah Thompson, David Espiritu, and Dr. Drew Clinkenbeard for early `HP products`. 
+
+
+### Why Memento Design Pattern ?
+
+The memento pattern can provide several benefits for `distributed systems`, such as `enabling checkpointing` and `rollback mechanisms`, `facilitating replication` and `synchronization of state across multiple nodes`, `supporting undo and redo operations`, and improving performance and scalability.
+
+It allows a node `to recover from a failure or mistake by restoring its previous state from a memento`, `reduces the communication overhead` by using mementos as messages that carry the state information, and allows a node to revert or reapply changes made to its state by using mementos as commands. 
+
+All of these features can lead to an enhanced system with greater scalability.
+
+### Why not Memento Design Pattern ?
+
+The memento pattern can also present some difficulties for distributed systems, such as `increasing complexity` and `system size by introducing additional objects and data structures`, `introducing consistency and concurrency issues if the mementos are not synchronized properly`, incurring additional overhead and `latency` for creating, storing, and transferring the mementos over the network, and compromising security and `privacy of the system` if the mementos are not encrypted or authenticated.
+
+### When Memento Design Pattern can be apply ?
+
+- It is used in Undo and Redo operations in most software.
+
+- It is also used in database transactions.
+
+### Which Problems Memento Design Pattern Solves ?
+
+- The internal state of an object should be saved externally so that the object can be restored to this state later.
+
+- The object's encapsulation must not be violated.
+
+The problem is that a well designed object is encapsulated so that its representation (data structure) is hidden inside the object and can't be accessed from outside the object. 
+
+### How Such Problems Memento Design Pattern Solves ?
+
+Make an object (`originator`) itself responsible for 
+
+- saving its internal state to a (memento) object and
+    
+- restoring to a previous state from a (memento) object.
+
+Only the originator that created a memento is allowed to access it. 
+
+A client (caretaker) can request a memento from the originator (to save the internal state of the originator) and pass a memento back to the originator (to restore to a previous state). 
+
+This enables to save and restore the internal state of an originator without violating its encapsulation. 
+
+
+### Ways to Acheive Momento Design Pattern
+
+There are mainly three other ways to achieve Memento: 
+
+- Serialization.
+
+- A class declared in the same package.
+    
+- The object can also be accessed via a proxy, which can achieve any save/restore operation on the object.
+
+### Structure of Memento Design Pattern
+
+![alt text](image-46.png)
+
+In the above UML class diagram, the `Caretaker` class refers to the `Originator` class for saving (`createMemento()`) and restoring (`restore(memento)`) originator's internal state.
+
+The `Originator` class implements 
+
+(1) `createMemento()` by creating and returning a Memento object that stores originator's current internal state.
+
+(2) `restore(memento)` by restoring state from the passed in Memento object. 
+
+::: The UML sequence diagram shows the run-time interactions :::
+
+(1) Saving originator's internal state: The `Caretaker` object calls `createMemento()` on the `Originator` object, which creates a `Memento` object, saves its current internal state (`setState()`), and returns the `Memento` to the `Caretaker`. 
+
+(2) Restoring originator's internal state: The `Caretaker` calls `restore(memento)` on the `Originator` object and specifies the `Memento` object that stores the state that should be restored. The `Originator` gets the state (`getState()`) from the `Memento` to set its own state. 
+
+
+### C++ Example
+
+```C++
+/*
+ * C++ Design Patterns: Memento
+ * Author: Jakub Vojvoda [github.com/JakubVojvoda]
+ * 2016
+ *
+ * Source code is licensed under MIT License
+ * (for more details see LICENSE)
+ *
+ */
+
+#include <iostream>
+#include <vector>
+
+/*
+ * Memento
+ * stores internal state of the Originator object and protects
+ * against access by objects other than the originator
+ */
+class Memento
+{
+private:
+  // accessible only to Originator
+  friend class Originator;
+  
+  Memento( const int s ) : state( s ) {}
+  
+  void setState( const int s )
+  {
+    state = s;
+  }
+  
+  int getState()
+  {
+    return state;
+  }
+  // ...
+
+private:
+  int state;
+  // ...
+};
+
+/*
+ * Originator
+ * creates a memento containing a snapshot of its current internal
+ * state and uses the memento to restore its internal state
+ */
+class Originator
+{
+public:
+  // implemented only for printing purpose
+  void setState( const int s )
+  {
+    std::cout << "Set state to " << s << "." << std::endl;
+    state = s;
+  }
+  
+  // implemented only for printing purpose
+  int getState()
+  {
+    return state;
+  }
+  
+  void setMemento( Memento* const m )
+  {
+    state = m->getState();
+  }
+  
+  Memento *createMemento()
+  {
+    return new Memento( state );
+  }
+
+private:
+  int state;
+  // ...
+};
+
+/*
+ * CareTaker
+ * is responsible for the memento's safe keeping
+ */
+class CareTaker
+{
+public:
+  CareTaker( Originator* const o ) : originator( o ) {}
+  
+  ~CareTaker()
+  {
+    for ( unsigned int i = 0; i < history.size(); i++ )
+    {
+      delete history.at( i );
+    }
+    history.clear();
+  }
+  
+  void save()
+  {
+    std::cout << "Save state." << std::endl;
+    history.push_back( originator->createMemento() );
+  }
+  
+  void undo()
+  {
+    if ( history.empty() )
+    {
+      std::cout << "Unable to undo state." << std::endl;
+      return;
+    }
+    
+    Memento *m = history.back();
+    originator->setMemento( m );
+    std::cout << "Undo state." << std::endl;
+    
+    history.pop_back();
+    delete m;
+  }
+  // ...
+
+private:
+  Originator *originator;
+  std::vector<Memento*> history;
+  // ...
+};
+
+
+int main()
+{
+  Originator *originator = new Originator();
+  CareTaker *caretaker = new CareTaker( originator );
+  
+  originator->setState( 1 );
+  caretaker->save();
+  
+  originator->setState( 2 );
+  caretaker->save();
+  
+  originator->setState( 3 );
+  caretaker->undo();
+  
+  std::cout << "Actual state is " << originator->getState() << "." << std::endl;
+  
+  delete originator;
+  delete caretaker;
+  
+  return 0;
+}
+```
+
+### Java Example
+
+The following Java program illustrates the "undo" usage of the memento pattern. 
+
+This example uses a String as the state, which is an immutable object in Java. In real-life scenarios the state will almost always be a mutable object, in which case a copy of the state must be made. 
+
+It must be said that the implementation shown has a drawback: it declares an internal class. It would be better if this memento strategy could apply to more than one originator. 
+
+```java
+import java.util.List;
+import java.util.ArrayList;
+class Originator {
+    private String state;
+    // The class could also contain additional data that is not part of the
+    // state saved in the memento..
+ 
+    public void set(String state) {
+        this.state = state;
+        System.out.println("Originator: Setting state to " + state);
+    }
+ 
+    public Memento saveToMemento() {
+        System.out.println("Originator: Saving to Memento.");
+        return new Memento(this.state);
+    }
+ 
+    public void restoreFromMemento(Memento memento) {
+        this.state = memento.getSavedState();
+        System.out.println("Originator: State after restoring from Memento: " + state);
+    }
+ 
+    public static class Memento {
+        private final String state;
+
+        public Memento(String stateToSave) {
+            state = stateToSave;
+        }
+ 
+        // accessible by outer class only
+        private String getSavedState() {
+            return state;
+        }
+    }
+}
+ 
+class Caretaker {
+    public static void main(String[] args) {
+        List<Originator.Memento> savedStates = new ArrayList<Originator.Memento>();
+ 
+        Originator originator = new Originator();
+        originator.set("State1");
+        originator.set("State2");
+        savedStates.add(originator.saveToMemento());
+        originator.set("State3");
+        // We can request multiple mementos, and choose which one to roll back to.
+        savedStates.add(originator.saveToMemento());
+        originator.set("State4");
+ 
+        originator.restoreFromMemento(savedStates.get(1));   
+    }
+}
+```
+
+// Output
+
+```bash
+Originator: Setting state to State1
+Originator: Setting state to State2
+Originator: Saving to Memento.
+Originator: Setting state to State3
+Originator: Saving to Memento.
+Originator: Setting state to State4
+Originator: State after restoring from Memento: State3
+```
+
+### Another Java Example
+
+::: `Memento` ::: 
+
+- Stores internal state of the originator object. The state can include any number of state variables.
+    
+- The Memento must have two interfaces, an interface to the caretaker. This interface must not allow any operations or any access to internal state stored by the memento and thus maintains the encapsulation. The other interface is Originator and it allows the Originator to access any state variables necessary to the originator to restore the previous state.
+
+::: `Originator` :::
+
+- Creates a memento object that will capture the internal state of Originator.
+    
+- Use the memento object to restore its previous state.
+
+::: `Caretaker` :::
+
+- Responsible for keeping the memento.
+    
+- The memento is transparent to the caretaker, and the caretaker must not operate on it.
+
+![alt text](image-47.png)
+
+- Step 1 ::: Create an `Originator` class that will use Memento object to restore its previous state.
+
+```java
+    //This is a class.  
+      
+    public class Originator {  
+          
+           private String state;  
+          
+           public void setState(String state){  
+              this.state = state;  
+           }  
+          
+           public String getState(){  
+              return state;  
+           }  
+          
+           public Memento saveStateToMemento(){  
+              return new Memento(state);  
+           }  
+          
+           public void getStateFromMemento(Memento Memento){  
+              state = Memento.getState();  
+           }  
+    }// End of the Originator class.  
+```
+
+- Step 2 ::: Create a `Memento` class that will Store internal state of the `Originator` object.
+
+```java
+//This is a class.  
+  
+public class Memento {  
+      
+    private String state;  
+  
+    public Memento(String state) {  
+        this.state=state;  
+    }  
+    public String getState() {  
+        return state;  
+    }  
+      
+}// End of the Memento class.
+```
+
+- Step 3 ::: Create a `Caretaker` class that will responsible for keeping the `Memento`. 
+
+```java
+//This is a class.  
+  
+import java.util.ArrayList;  
+import java.util.List;  
+  
+  
+public class Caretaker {  
+      
+    private List<Memento> mementoList = new ArrayList<Memento>();  
+  
+       public void add(Memento state){  
+          mementoList.add(state);  
+       }  
+  
+       public Memento get(int index){  
+          return mementoList.get(index);  
+       }  
+  
+}// End of the Caretaker class.
+```
+
+- Step 4 ::: Create a `MementoPatternDemo` class.
+
+```java
+public class MementoPatternDemo {  
+      
+    public static void main(String[] args) {  
+          
+          Originator originator = new Originator();  
+            
+          Caretaker careTaker = new Caretaker();  
+            
+          originator.setState("State #1");  
+          careTaker.add(originator.saveStateToMemento());  
+          originator.setState("State #2");  
+          careTaker.add(originator.saveStateToMemento());  
+          originator.setState("State #3");  
+          careTaker.add(originator.saveStateToMemento());  
+          originator.setState("State #4");  
+  
+          System.out.println("Current State: " + originator.getState());          
+          originator.getStateFromMemento(careTaker.get(0));  
+          System.out.println("First saved State: " + originator.getState());  
+          originator.getStateFromMemento(careTaker.get(1));  
+          System.out.println("Second saved State: " + originator.getState());  
+          originator.getStateFromMemento(careTaker.get(2));  
+          System.out.println("Third saved State: " + originator.getState());  
+       }  
+  
+}  
+// End of the MementoPatternDemo class.
+```  
+
+// Output
+
+![alt text](image-48.png)
+
+### JavaScript Example
+
+```javascript
+// The Memento pattern is used to save and restore the state of an object.
+// A memento is a snapshot of an object's state.
+var Memento = {// Namespace: Memento
+    savedState : null, // The saved state of the object.
+
+    save : function(state) { // Save the state of an object.
+        this.savedState = state;
+    },
+
+    restore : function() { // Restore the state of an object.
+        return this.savedState;
+    }
+};
+
+// The Originator is the object that creates the memento.
+// defines a method for saving the state inside a memento.
+var Originator = {// Namespace: Originator
+        state : null, // The state to be stored
+
+        // Creates a new originator with an initial state of null
+        createMemento : function() { 
+            return {
+                state : this.state // The state is copied to the memento.
+            };
+        },
+        setMemento : function(memento) { // Sets the state of the originator from a memento
+            this.state = memento.state;
+        }
+    };
+
+
+// The Caretaker stores mementos of the objects and
+// provides operations to retrieve them.
+var Caretaker = {// Namespace: Caretaker
+        mementos : [], // The mementos of the objects.
+        addMemento : function(memento) { // Add a memento to the collection.
+            this.mementos.push(memento);
+        },
+        getMemento : function(index) { // Get a memento from the collection.
+            return this.mementos[index];
+        }
+    };
+
+var action_step = "Foo"; // The action to be executed/the object state to be stored.
+var action_step_2 = "Bar"; // The action to be executed/the object state to be stored.
+
+// set the initial state
+Originator.state = action_step;
+Caretaker.addMemento(Originator.createMemento());// save the state to the history
+console.log("Initial State: " + Originator.state); // Foo
+
+// change the state
+Originator.state = action_step_2;
+Caretaker.addMemento(Originator.createMemento()); // save the state to the history
+console.log("State After Change: " + Originator.state); // Bar
+
+// restore the first state - undo
+Originator.setMemento(Caretaker.getMemento(0));
+console.log("State After Undo: " + Originator.state); // Foo
+
+// restore the second state - redo
+Originator.setMemento(Caretaker.getMemento(1));
+console.log("State After Redo: " + Originator.state); // Bar
+```
+
 ## Observer Design Pattern
 
 ## State Design Pattern
