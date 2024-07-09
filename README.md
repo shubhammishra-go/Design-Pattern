@@ -7278,6 +7278,8 @@ Memento pattern is a software design pattern that exposes the `private internal 
 
 One example of how this can be used is to restore an object to its previous state (undo via rollback), another is versioning, another is custom serialization. 
 
+![alt text](image-49.png)
+
 The memento pattern is implemented with three objects: the `originator`, a `caretaker` and a `memento`.
 
 The `originator` is some object that has an internal state.
