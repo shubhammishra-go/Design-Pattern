@@ -7792,7 +7792,7 @@ console.log("State After Redo: " + Originator.state); // Bar
 
 Observer pattern is a software design pattern in which an object, named the subject, maintains a list of its dependents, called observers, and notifies them automatically of any state changes, usually by calling one of their methods. 
 
-An Observer Pattern says that "just define a one-to-one dependency so that when one object changes state, all its dependents are notified and updated automatically".
+It says that "just define a one-to-one dependency so that when one object changes state, all its dependents are notified and updated automatically".
 
 The observer pattern is also known as `Dependents` or `Publish-Subscribe`.
 
