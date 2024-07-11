@@ -8217,15 +8217,14 @@ This makes a class independent of how state-specific behavior is implemented. Ne
 
 ### Structure of State Design Pattern
 
-![alt text](image-55.png)
+![alt text](image-61.png)
 
 In the accompanying Unified Modeling Language (UML) class diagram, the `Context` class doesn't implement state-specific behavior directly. Instead, `Context` refers to the `State` interface for performing state-specific behavior (`state.handle()`), which makes `Context` independent of how state-specific behavior is implemented.
 
 The `ConcreteStateA` and `ConcreteStateB` classes implement the `State` interface, that is, implement (encapsulate) the state-specific behavior for each state. 
 
-![alt text](image-56.png)
 
-The UML sequence diagram shows the run-time interactions: 
+The UML sequence diagram shows the run-time interactions ::: 
 
 The `Context` object delegates state-specific behavior to different State objects. First, `Context` calls `handle(this)` on its current (initial) state object (`ConcreteStateA`), which performs the operation and calls `setState(ConcreteStateB)` on Context to change context's current state to `ConcreteStateB`. 
 
