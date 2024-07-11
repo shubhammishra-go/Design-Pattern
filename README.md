@@ -8160,6 +8160,509 @@ Subject.setState(10);
 
 ## State Design Pattern
 
+State pattern is a behavioral software design pattern that allows an object to alter its behavior when its internal state changes.
+
+This pattern is close to the concept of `finite-state machines`. 
+
+![alt text](image-59.png)
+
+The state pattern can be interpreted as a strategy pattern, which is able to switch a strategy through invocations of methods defined in the pattern's interface. 
+
+The state pattern is used in computer programming to encapsulate varying behavior for the same object, based on its internal state. This can be a cleaner way for an object to change its behavior at runtime without resorting to conditional statements and thus improve maintainability.
+
+To know more about state pattern ::: https://stackoverflow.com/questions/4935806/how-to-use-state-pattern-correctly
+
+// Synchronous and Asynchronous Calls 
+
+- If a caller sends a synchronous message...
+
+    ...the caller must wait until the message is done.
+
+    For example: invoking a subroutine.
+
+- If a caller sends an asynchronous message...
+
+    ...the caller can continue processing: no need to wait for a response.
+
+    For example: multithreaded applications and message-oriented middleware.
+
+
+### Why State Design Pattern ?
+
+- It keeps the state-specific behavior.
+    
+- It makes any state transitions explicit.
+
+### Which Problems State Design Pattern ?
+
+Implementing state-specific behavior directly within a class is inflexible because it commits the class to a particular behavior and makes it impossible to add a new state or change the behavior of an existing state later, independently from the class, without changing the class. 
+
+- An object should change its behavior when its internal state changes.
+
+- State-specific behavior should be defined independently. That is, adding new states should not affect the behavior of existing states.
+
+### How Such Problems State Design Pattern Solves ?
+
+- Define separate (state) objects that encapsulate state-specific behavior for each state. That is, define an interface (state) for performing state-specific behavior, and define classes that implement the interface for each state.
+
+- A class delegates state-specific behavior to its current state object instead of implementing state-specific behavior directly.
+
+This makes a class independent of how state-specific behavior is implemented. New states can be added by defining new state classes. A class can change its behavior at run-time by changing its current state object. 
+
+### When State Design Pattern can be apply ?
+
+- When the behavior of object depends on its state and it must be able to change its behavior at runtime according to the new state.
+    
+- It is used when the operations have large, multipart conditional statements that depend on the state of an object.
+
+### Structure of State Design Pattern
+
+![alt text](image-55.png)
+
+In the accompanying Unified Modeling Language (UML) class diagram, the `Context` class doesn't implement state-specific behavior directly. Instead, `Context` refers to the `State` interface for performing state-specific behavior (`state.handle()`), which makes `Context` independent of how state-specific behavior is implemented.
+
+The `ConcreteStateA` and `ConcreteStateB` classes implement the `State` interface, that is, implement (encapsulate) the state-specific behavior for each state. 
+
+![alt text](image-56.png)
+
+The UML sequence diagram shows the run-time interactions: 
+
+The `Context` object delegates state-specific behavior to different State objects. First, `Context` calls `handle(this)` on its current (initial) state object (`ConcreteStateA`), which performs the operation and calls `setState(ConcreteStateB)` on Context to change context's current state to `ConcreteStateB`. 
+
+The next time, `Context` again calls `handle(this)` on its current state object (`ConcreteStateB`), which performs the operation and changes context's current state to `ConcreteStateA`. 
+
+### C++ Example
+
+![alt text](image-60.png)
+
+To further demonstrate what the State Pattern is all about, I created a little Music Player example with some of the simplest requests and state transitions a music player requires. 
+
+Consider a `MusicPlayer` object that acts as our `Context` class. 
+
+It supports requests of `Play()`, `Pause()` and `Stop()`. It will delegate the behaviors of these requests via it `MusicPlayerState` member which acts as the MusicPlayer’s current state. 
+
+We have three derivations of the `MusicPlayerState` base class. They are `PlayingState`, `PausedState` and `StoppedState`. 
+
+Each overrides the methods of their base class that require specific behavior based on current state.
+
+For PlayingState, Pause() and Stop() are overridden. For PausedState, Play() and Stop() are overridden. Finally, StoppedState overrides just the Play() method.
+
+- `MusicPlayer.h`
+
+```c++
+class MusicPlayer {
+public:
+	enum State
+	{
+		ST_STOPPED,
+		ST_PLAYING,
+		ST_PAUSED
+	};
+
+	MusicPlayer();
+	virtual ~MusicPlayer();
+
+	void Play();
+	void Pause();
+	void Stop();
+
+	void SetState(State state);
+
+private:
+	MusicPlayerState * m_pState;
+};
+```
+
+- `MusicPlayer.cpp`
+
+```c++
+MusicPlayer::MusicPlayer()
+: m_pState(new StoppedState()){
+
+}
+
+MusicPlayer::~MusicPlayer() {
+	delete m_pState;
+}
+
+void MusicPlayer::Play() {
+	m_pState->Play(this);
+}
+
+void MusicPlayer::Pause() {
+	m_pState->Pause(this);
+}
+
+void MusicPlayer::Stop() {
+	m_pState->Stop(this);
+}
+
+void MusicPlayer::SetState(State state)
+{
+	std::cout << "changing from " << m_pState->GetName() << " to ";
+	delete m_pState;
+
+	if(state == ST_STOPPED)
+	{
+		m_pState = new StoppedState();
+	}
+	else if(state == ST_PLAYING)
+	{
+		m_pState = new PlayingState();
+	}
+	else
+	{
+		m_pState = new PausedState();
+	}
+
+	std::cout << m_pState->GetName() << " state\n";
+}
+```
+
+- `MusicPlayerState.h`
+
+```c++
+class MusicPlayerState {
+public:
+	MusicPlayerState(std::string name);
+	virtual ~MusicPlayerState();
+
+	virtual void Play(MusicPlayer * player);
+	virtual void Pause(MusicPlayer * player);
+	virtual void Stop(MusicPlayer * player);
+
+	std::string GetName() { return m_name; }
+
+private:
+	std::string   m_name;
+};
+```
+
+- `MusicPlayerState.cpp`
+
+```c++
+MusicPlayerState::MusicPlayerState(std::string name)
+: m_name(name) {
+
+}
+
+MusicPlayerState::~MusicPlayerState() {
+}
+
+void MusicPlayerState::Play(MusicPlayer *)
+{
+	std::cout << "Illegal state transition from " << GetName() << " to Playing\n";
+}
+
+void MusicPlayerState::Pause(MusicPlayer *)
+{
+	std::cout << "Illegal state transition from " << GetName() << " to Paused\n";
+}
+
+void MusicPlayerState::Stop(MusicPlayer *)
+{
+	std::cout << "Illegal state transition from " << GetName() << " to Stopped\n";
+}
+```
+
+- `PlayingState.h`
+
+```c++
+class PlayingState : public MusicPlayerState {
+public:
+	PlayingState();
+	virtual ~PlayingState();
+
+	virtual void Pause(MusicPlayer * player);
+	virtual void Stop(MusicPlayer * player);
+};
+```
+
+- `PlayingState.cpp`
+
+
+```c++
+PlayingState::PlayingState()
+: MusicPlayerState(std::string("Playing")) {
+}
+
+PlayingState::~PlayingState() {
+}
+
+void PlayingState::Pause(MusicPlayer * player)
+{
+	player->SetState(MusicPlayer::ST_PAUSED);
+}
+
+void PlayingState::Stop(MusicPlayer * player)
+{
+	player->SetState(MusicPlayer::ST_STOPPED);
+}
+```
+
+- `PausedState.h`
+
+
+```c++
+class PausedState : public MusicPlayerState {
+public:
+	PausedState();
+	virtual ~PausedState();
+
+	virtual void Play(MusicPlayer * player);
+	virtual void Stop(MusicPlayer * player);
+};
+```
+
+- `PausedState.cpp`
+
+
+```c++
+PausedState::PausedState()
+: MusicPlayerState(std::string("Paused")) {
+}
+
+PausedState::~PausedState() {
+}
+
+void PausedState::Play(MusicPlayer * player)
+{
+	player->SetState(MusicPlayer::ST_PLAYING);
+}
+
+void PausedState::Stop(MusicPlayer * player)
+{
+	player->SetState(MusicPlayer::ST_STOPPED);
+}
+```
+
+- `StoppedState.h`
+
+```c++
+class StoppedState : public MusicPlayerState {
+public:
+	StoppedState();
+	virtual ~StoppedState();
+
+	virtual void Play(MusicPlayer * player);
+};
+```
+
+- `StoppedState.cpp`
+
+```c++
+StoppedState::StoppedState()
+: MusicPlayerState(std::string("Stopped")) {
+}
+
+StoppedState::~StoppedState() {
+}
+
+void StoppedState::Play(MusicPlayer * player)
+{
+	player->SetState(MusicPlayer::ST_PLAYING);
+}
+```
+
+- `MusicPlayerTest.cpp`
+
+```c++
+int main()
+{
+	MusicPlayer player;
+
+	player.Play();
+	player.Pause();
+	player.Stop();
+
+	return 0;
+}
+```
+
+// Output
+
+```bash
+changing from Stopped to Playing state
+changing from Playing to Paused state
+changing from Paused to Stopped state
+```
+
+### Java Example
+
+![alt text](image-57.png)
+
+- Step 1 ::: Create a `Connection` interface that will provide the connection to the `Controller` class.
+
+```java
+    //This is an interface.  
+      
+    public interface Connection {  
+      
+           public void open();  
+           public void close();  
+           public void log();  
+           public void update();  
+    }// End of the Connection interface.
+```  
+
+- Step 2 ::: Create an `Accounting` class that will implement to the `Connection` interface.
+
+```java
+public class Accounting implements Connection {  
+      
+       @Override  
+       public void open() {  
+          System.out.println("open database for accounting");  
+       }  
+       @Override  
+       public void close() {  
+          System.out.println("close the database");  
+       }  
+         
+       @Override  
+       public void log() {  
+          System.out.println("log activities");  
+       }  
+         
+       @Override  
+       public void update() {  
+           System.out.println("Accounting has been updated");  
+       }  
+}// End of the Accounting class.
+```  
+
+- Step 3 ::: Create a `Sales` class that will implement to the `Connection` interface.
+
+```java
+public class Sales implements Connection {  
+      
+      @Override  
+       public void open() {  
+          System.out.println("open database for sales");  
+       }  
+       @Override  
+       public void close() {  
+          System.out.println("close the database");  
+       }  
+         
+       @Override  
+       public void log() {  
+          System.out.println("log activities");  
+       }  
+         
+       @Override  
+       public void update() {  
+           System.out.println("Sales has been updated");  
+       }  
+  
+}// End of the Sales class.
+```
+
+- Step 4 ::: Create a `Management` class that will implement to the `Connection` interface.
+
+```java
+public class Management implements Connection {  
+      
+      @Override  
+       public void open() {  
+          System.out.println("open database for Management");  
+       }  
+       @Override  
+       public void close() {  
+          System.out.println("close the database");  
+       }  
+         
+       @Override  
+       public void log() {  
+          System.out.println("log activities");  
+       }  
+         
+       @Override  
+       public void update() {  
+           System.out.println("Management has been updated");  
+       }  
+  
+}
+``` 
+
+- Step 5 ::: Create a `Controller` class that will use the `Connection` interface for connecting with different types of connection.
+
+```java
+public class Controller {  
+      
+       public static Accounting acct;  
+       public static Sales sales;  
+       public static Management management;  
+         
+       private static Connection con;  
+         
+       Controller() {  
+           acct = new Accounting();  
+           sales = new Sales();  
+           management = new Management();  
+       }  
+      
+       public void setAccountingConnection() {  
+           con = acct;  
+       }  
+       public void setSalesConnection() {  
+           con  = sales;  
+       }  
+       public void setManagementConnection() {  
+           con  = management;  
+       }  
+       public void open() {  
+           con .open();  
+       }  
+       public void close() {  
+           con .close();  
+       }  
+       public void log() {  
+           con .log();  
+       }  
+       public void update() {  
+           con .update();  
+       }  
+         
+  
+}// End of the Controller class.
+```  
+
+- Step 6 ::: Create a `StatePatternDemo` class.
+
+```java
+public class StatePatternDemo {  
+  
+       Controller controller;  
+       StatePatternDemo(String con) {  
+          controller = new Controller();  
+          //the following trigger should be made by the user  
+          if(con.equalsIgnoreCase("management"))  
+             controller.setManagementConnection();  
+          if(con.equalsIgnoreCase("sales"))  
+             controller.setSalesConnection();  
+          if(con.equalsIgnoreCase("accounting"))  
+                 controller.setAccountingConnection();  
+          controller.open();  
+          controller.log();  
+          controller.close();  
+          controller.update();  
+       }  
+         
+         
+       public static void main(String args[]) {  
+  
+           new StatePatternDemo(args[0]);  
+             
+       }  
+  
+}// End of the StatePatternDemo class.
+```  
+
+// Output
+
+![alt text](image-58.png)
+
 ## Strategy Design Pattern
 
 ## Template Design Pattern
