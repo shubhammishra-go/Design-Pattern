@@ -8664,6 +8664,352 @@ public class StatePatternDemo {
 
 ## Strategy Design Pattern
 
+Strategy Pattern (also known as the `policy pattern`) is a behavioral software design pattern that enables selecting an algorithm at runtime. Instead of implementing a single algorithm directly, code receives runtime instructions as to which in a family of algorithms to use.
+
+![alt text](image-55.png)
+
+The Strategy pattern encapsulates an algorithm in an object. Strategy makes it easy to specify and change the algorithm an object uses. 
+
+Define a family of algorithms, encapsulate each one, and make them interchangeable. 
+
+Strategy lets the algorithm vary independently from clients that use it. 
+
+For instance, a class that performs validation on incoming data may use the strategy pattern to select a validation algorithm depending on the type of data, the source of the data, user choice, or other discriminating factors. 
+
+These factors are not known until runtime and may require radically different validation to be performed. The validation algorithms (strategies), encapsulated separately from the validating object, may be used by other validating objects in different areas of the system (or even different systems) without code duplication. 
+
+Typically, the strategy pattern stores a reference to code in a data structure and retrieves it. This can be achieved by mechanisms such as the native function pointer, the first-class function, classes or class instances in object-oriented programming languages, or accessing the language implementation's internal storage of code via reflection. 
+
+The Strategy pattern is really about having a different implementation that accomplishes (basically) the same thing, so that one implementation can replace the other as the strategy requires. For example, you might have different sorting algorithms in a strategy pattern. The callers to the object does not change based on which strategy is being employed, but regardless of strategy the goal is the same (sort the collection).
+
+
+### Policy vs Strategy Pattern
+
+Policies are largely set at compile time, while strategies are set at runtime. Further, policies are generally a C++ concept, and apply only to a minority of other languages(for example D), while strategy pattern is available to many (most?) object oriented languages, and languages that treat functions as first class citizens like python.
+
+- A `policy`, being determined at `compile time`, is generally only useful for special situations where you want different application logic on a per-binary basis. For instance you might develop software that is slightly customized for each customer, whether via a web interface, or by hand, this would be a policy-based pattern.
+
+- A `strategy` is determined at `runtime`, and in fact can be changed on the fly. For instance you might have software which implements a different user interface and logic for the salesforce than for the support group, but they all have to deal with the same customer and licensing info so rather than having two separately maintained apps you simply have one app whose interface changes as needed.
+
+### Why Strategy Design Pattern ?
+
+- It provides a substitute to subclassing.
+
+- It defines each behavior within its own class, eliminating the need for conditional statements.
+    
+- It makes it easier to extend and incorporate new behavior without changing the application.
+
+### Which Problems Strategy Design Pattern Solves ?
+
+- to use different variants of an algorithm within an object and be able to switch from one algorithm to another during runtime.
+    
+- when we have a lot of similar classes that only differ in the way they execute some behavior.
+    
+- to isolate the business logic of a class from the implementation details of algorithms that may not be as important in the context of that logic.
+    
+- class has a massive conditional operator that switches between different variants of the same algorithm.
+
+### How Such Problems Strategy Design Pattern Solves ?
+
+- In the context class, identify an algorithm that’s prone to frequent changes. It may also be a massive conditional that selects and executes a variant of the same algorithm at runtime.
+    
+- Declare the strategy interface common to all variants of the algorithm.
+    
+- One by one, extract all algorithms into their own classes. They should all implement the strategy interface.
+    
+- In the context class, add a field for storing a reference to a strategy object. Provide a setter for replacing values of that field. The context should work with the strategy object only via the strategy interface. The context may define an interface which lets the strategy access its data.
+
+- Clients of the context must associate it with a suitable strategy that matches the way they expect the context to perform its primary job.
+
+### When Strategy Design Pattern can be apply ?
+
+- The strategy pattern is useful for situations where it is necessary to dynamically swap the algorithms used in an application. The strategy pattern is intended to provide a means to define a `family of algorithms`, encapsulate each one as an object, and make them interchangeable. The strategy pattern lets the algorithms vary independently from clients that use them.
+
+- When the multiple classes differ only in their behaviors.e.g. `Servlet API`.
+    
+### Structure of Strategy Design Pattern
+
+![alt text](image-56.png)
+
+In the above UML class diagram, the `Context` class does not implement an algorithm directly. 
+
+Instead, `Context` refers to the `Strategy` interface for performing an algorithm (`strategy.algorithm()`), which makes `Context` independent of how an algorithm is implemented. 
+
+The `Strategy1` and `Strategy2` classes implement the `Strategy` interface, that is, implement (encapsulate) an algorithm. 
+
+The UML sequence diagram shows the runtime interactions ::: 
+
+The `Context` object delegates an algorithm to different `Strategy` objects. First, `Context` calls `algorithm()` on a `Strategy1` object, which performs the algorithm and returns the result to `Context`. 
+
+Thereafter, `Context` changes its strategy and calls `algorithm()` on a `Strategy2` object, which performs the algorithm and returns the result to `Context`. 
+
+### C++ Example
+
+```c++
+#include <iostream>
+#include <fstream>
+#include <string.h>
+
+using namespace std;
+
+class Strategy;
+
+class TestBed{
+  public:
+    TestBed(){
+        myStrategy = NULL;
+    }
+    void setBehavior(int type);
+    Strategy *myStrategy;
+};
+
+class Strategy{
+  public:
+    void performBehavior(){
+       behave();
+    }
+  private:
+    virtual void behave() = 0;
+};
+
+class behaviorOne: public Strategy{
+  private:
+    void behave(){
+        cout << "left strategy" << endl;
+    }
+};
+
+class behaviorTwo: public Strategy{
+  private:
+    void behave(){
+        cout << "right strategy" << endl;
+    }
+};
+
+class behaviorThree: public Strategy{
+  private:
+    void behave(){
+        cout << "center strategy" << endl;
+    }
+};
+
+void TestBed::setBehavior(int type){  
+  delete myStrategy;
+  if (type == 0)
+    myStrategy = new behaviorOne();
+  else if (type == 1)
+    myStrategy = new behaviorTwo();
+  else if (type == 2)
+    myStrategy = new behaviorThree();
+}
+
+int main(){
+  TestBed test;
+  int answer;  
+  while(1){
+     cout << "Exit(other) Left(0) Right(1) Center(2): ";
+     cin >> answer;
+     if(answer > 2) break;
+     test.setBehavior(answer);
+     test.myStrategy->performBehavior();
+  }   
+  return 0;
+}
+```
+
+### Java Example
+
+According to the strategy pattern, the behaviors of a class should not be inherited. Instead, they should be encapsulated using interfaces. This is compatible with the open/closed principle (OCP), which proposes that classes should be open for extension but closed for modification. 
+
+![alt text](image-64.png)
+
+As an example, consider a car class. Two possible functionalities for car are brake and accelerate. Since accelerate and brake behaviors change frequently between models, a common approach is to implement these behaviors in subclasses. This approach has significant drawbacks; accelerate and brake behaviors must be declared in each new car model. The work of managing these behaviors increases greatly as the number of models increases, and requires code to be duplicated across models. Additionally, it is not easy to determine the exact nature of the behavior for each model without investigating the code in each. 
+
+The strategy pattern uses composition instead of inheritance. 
+
+In the strategy pattern, behaviors are defined as separate interfaces and specific classes that implement these interfaces. 
+
+This allows better decoupling between the behavior and the class that uses the behavior. 
+
+The behavior can be changed without breaking the classes that use it, and the classes can switch between behaviors by changing the specific implementation used without requiring any significant code changes. Behaviors can also be changed at runtime as well as at design-time. 
+
+For instance, a car object's brake behavior can be changed from `BrakeWithABS()` to `Brake()` by changing the `brakeBehavior` member to:  
+
+```bash 
+brakeBehavior = new Brake();
+```
+
+```java
+/* Encapsulated family of Algorithms
+ * Interface and its implementations
+ */
+public interface IBrakeBehavior {
+    public void brake();
+}
+
+public class BrakeWithABS implements IBrakeBehavior {
+    public void brake() {
+        System.out.println("Brake with ABS applied");
+    }
+}
+
+public class Brake implements IBrakeBehavior {
+    public void brake() {
+        System.out.println("Simple Brake applied");
+    }
+}
+
+/* Client that can use the algorithms above interchangeably */
+public abstract class Car {
+    private IBrakeBehavior brakeBehavior;
+
+    public Car(IBrakeBehavior brakeBehavior) {
+      this.brakeBehavior = brakeBehavior;
+    }
+
+    public void applyBrake() {
+        brakeBehavior.brake();
+    }
+
+    public void setBrakeBehavior(IBrakeBehavior brakeType) {
+        this.brakeBehavior = brakeType;
+    }
+}
+
+/* Client 1 uses one algorithm (Brake) in the constructor */
+public class Sedan extends Car {
+    public Sedan() {
+        super(new Brake());
+    }
+}
+
+/* Client 2 uses another algorithm (BrakeWithABS) in the constructor */
+public class SUV extends Car {
+    public SUV() {
+        super(new BrakeWithABS());
+    }
+}
+
+/* Using the Car example */
+public class CarExample {
+    public static void main(final String[] arguments) {
+        Car sedanCar = new Sedan();
+        sedanCar.applyBrake();  // This will invoke class "Brake"
+
+        Car suvCar = new SUV();
+        suvCar.applyBrake();    // This will invoke class "BrakeWithABS"
+
+        // set brake behavior dynamically
+        suvCar.setBrakeBehavior( new Brake() );
+        suvCar.applyBrake();    // This will invoke class "Brake"
+    }
+}
+```
+
+
+### Another Java Example
+
+![alt text](image-62.png)
+
+- Step 1 ::: Create a `Strategy` interface.
+
+```java
+public interface Strategy {  
+      
+    public float calculation(float a, float b);  
+  
+}// End of the Strategy interface.
+```  
+
+- Step 2 ::: Create a `Addition` class that will implement `Startegy` interface.
+
+```java
+public class Addition implements Strategy{  
+  
+    @Override  
+    public float calculation(float a, float b) {  
+        return a+b;  
+    }  
+  
+}// End of the Addition class.
+``` 
+
+- Step 3 ::: Create a `Subtraction` class that will implement `Startegy` interface.
+
+```java
+public class Subtraction  implements Strategy{  
+  
+    @Override  
+    public float calculation(float a, float b) {  
+        return a-b;  
+    }  
+  
+}// End of the Subtraction class.
+```  
+
+- Step 4 ::: Create a `Multiplication` class that will implement `Startegy` interface.
+
+```java
+public class Multiplication implements Strategy{  
+  
+    @Override  
+    public float calculation(float a, float b){  
+        return a*b;  
+    }  
+}// End of the Multiplication class.
+``` 
+
+- Step 5 ::: Create a `Context` class that will ask from `Startegy` interface to execute the type of strategy. 
+
+```java
+public class Context {  
+  
+       private Strategy strategy;  
+       
+       public Context(Strategy strategy){  
+          this.strategy = strategy;  
+       }  
+  
+       public float executeStrategy(float num1, float num2){  
+          return strategy.calculation(num1, num2);  
+       }  
+}// End of the Context class.
+
+``` 
+
+- Step 6 ::: Create a `StartegyPatternDemo` class.
+
+```java
+import java.io.BufferedReader;  
+import java.io.IOException;  
+import java.io.InputStreamReader;  
+  
+public class StrategyPatternDemo {  
+      
+    public static void main(String[] args) throws NumberFormatException, IOException {  
+          
+          BufferedReader br=new BufferedReader(new InputStreamReader(System.in));  
+          System.out.print("Enter the first value: ");  
+          float value1=Float.parseFloat(br.readLine());  
+          System.out.print("Enter the second value: ");  
+          float value2=Float.parseFloat(br.readLine());  
+          Context context = new Context(new Addition());          
+          System.out.println("Addition = " + context.executeStrategy(value1, value2));  
+  
+          context = new Context(new Subtraction());       
+          System.out.println("Subtraction = " + context.executeStrategy(value1, value2));  
+  
+          context = new Context(new Multiplication());        
+          System.out.println("Multiplication = " + context.executeStrategy(value1, value2));  
+       }  
+  
+}// End of the StrategyPatternDemo class.
+```  
+
+// Output
+
+![alt text](image-63.png)
+
 ## Template Design Pattern
 
 ## Visitor Design Pattern
