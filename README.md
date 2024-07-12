@@ -9012,6 +9012,335 @@ public class StrategyPatternDemo {
 
 ## Template Design Pattern
 
+The Template Method is a method in a superclass, usually an abstract superclass, and defines the skeleton of an operation in terms of a number of high-level steps. These steps are themselves implemented by additional helper methods in the same class as the template method. 
+
+so, template method is an abstract definition of an algorithm. 
+
+![alt text](image-65.png)
+
+It defines the algorithm step by step. Each step invokes either an abstract operation or a primitive operation. A subclass fleshes out the algorithm by defining the abstract operations. 
+
+it lets subclasses redefine certain steps of an algorithm without changing the algorithm's structure. 
+
+The helper methods may be either abstract methods, in which case subclasses are required to provide concrete implementations, or hook methods, which have empty bodies in the superclass.
+
+Subclasses can (but are not required to) customize the operation by overriding the hook methods. 
+
+The intent of the template method is to define the overall structure of the operation, while allowing subclasses to refine, or redefine, certain steps.
+
+### Which Problems Template Design Pattern Solves ?
+
+The template method pattern combines the concepts of inheritance and polymorphism to solve the common programming problem of needing to allow for some level of variation in an algorithm.
+
+
+### Implemenation of Template Design Pattern
+
+This pattern has two main parts:
+
+- The `"template method"` is implemented as a method in a base class (usually an abstract class). This method contains code for the parts of the overall algorithm that are invariant. The template ensures that the overarching algorithm is always followed.In the template method, portions of the algorithm that may vary are implemented by sending self messages that request the execution of additional helper methods. In the base class, these helper methods are given a default implementation, or none at all (that is, they may be abstract methods).
+
+- Subclasses of the base class "fill in" the empty or "variant" parts of the "template" with specific algorithms that vary from one subclass to another. It is important that subclasses do not override the template method itself.
+
+At run-time, the algorithm represented by the template method is executed by sending the template message to an instance of one of the concrete subclasses. Through inheritance, the template method in the base class starts to execute. When the template method sends a message to self requesting one of the helper methods, the message will be received by the concrete sub-instance. If the helper method has been overridden, the overriding implementation in the sub-instance will execute; if it has not been overridden, the inherited implementation in the base class will execute. This mechanism ensures that the overall algorithm follows the same steps every time while allowing the details of some steps to depend on which instance received the original request to execute the algorithm. 
+
+This pattern is an example of `inversion of control` because the high-level code no longer determines what algorithms to run; a lower-level algorithm is instead selected at run-time. 
+
+Some of the self-messages sent by the template method may be to hook methods. These methods are implemented in the same base class as the template method, but with empty bodies (i.e., they do nothing). 
+
+Hook methods exist so that subclasses can override them, and can thus fine-tune the action of the algorithm without the need to override the template method itself. In other words, they provide a "hook" on which to "hang" variant implementations. 
+
+### Why Template Design Pattern ?
+
+The template method is used in `frameworks`, where each implements the invariant parts of a `domain's architecture`, while providing hook methods for customization. This is an example of `inversion of control`. The template method is used for the following reasons.
+
+- It lets subclasses implement varying behavior (through overriding of the hook methods).
+
+- It avoids duplication in the code: the general workflow of the algorithm is implemented once in the abstract class's template method, and necessary variations are implemented in the subclasses.
+    
+- It controls the point(s) at which specialization is permitted. If the subclasses were to simply override the template method, they could make `radical and arbitrary changes to the workflow`. In contrast, by overriding only the hook methods, only certain specific details of the workflow can be changed, and the overall workflow is left intact.
+
+- Code generators ::: The template pattern is useful when working with auto-generated code. The challenge of working with generated code is that changes to the source code will lead to changes in the generated code; if hand-written modifications have been made to the generated code, these will be lost. How, then, should the generated code be customized? 
+
+The Template pattern provides a solution. If the generated code follows the template method pattern, the generated code will all be an abstract superclass. Provided that hand-written customizations are confined to a subclass, the code generator can be run again without risk of over-writing these modifications. When used with code generation, this pattern is sometimes referred to as the generation gap pattern.
+
+### Why not Template Design Pattern ?
+
+- Inflexible hierarchy ::: 
+
+One of the challenges of using the template method pattern is that it creates a rigid hierarchy of classes, where the base class controls the main algorithm and the subclasses can only modify some parts of it. This means that you cannot easily change the order or the number of steps in the algorithm, or introduce new steps that are not defined in the base class. If you need more flexibility, you might have to refactor your code or use a different design pattern, such as the strategy pattern, which allows you to define different algorithms as separate objects and switch between them at runtime.
+
+- Tight coupling :::
+
+Another challenge of using the template method pattern is that it creates a tight coupling between the base class and the subclasses, which increases the dependency and reduces the reusability of the code. The base class and the subclasses need to know about each other's methods and interfaces, and any changes in one of them can affect the other. This can make the code harder to maintain, test, and extend. To reduce the coupling, you should follow the principle of least knowledge, which states that you should only interact with the most relevant objects and methods, and avoid exposing unnecessary details or functionality.
+
+- Fragile inheritance :::
+
+A third challenge of using the template method pattern is that it relies on inheritance, which can be fragile and prone to errors. Inheritance can introduce unwanted side effects or behaviors from the base class to the subclasses, or vice versa, especially if the base class is not designed to be subclassed or if the subclasses do not follow the Liskov substitution principle, which states that a subclass should be able to replace its base class without breaking the program. To avoid these problems, you should use inheritance carefully and sparingly, and prefer composition over inheritance, which means that you should use objects as components rather than extending them.
+
+- Template bloat :::
+
+A fourth challenge of using the template method pattern is that it can lead to template bloat, which means that you have too many methods or hooks in the base class that are not used or overridden by most of the subclasses. This can make the code more complex, verbose, and confusing, and reduce the performance and readability of the code. To prevent template bloat, you should keep the base class as simple and abstract as possible, and only define the essential steps and hooks that are common to all subclasses. You should also avoid adding methods or hooks that are specific to only one or a few subclasses, and instead use other techniques, such as conditional statements or polymorphism, to handle those cases.
+
+### When Template Design Pattern can be apply ?
+
+- It is used when the `common behavior among sub-classes should be moved to a single common class by avoiding the duplication`.
+
+- `When you want your program be "Open For Extension” and also “Closed for Modification”`. This means that the behavior of the module can be extended, such that we can make the module behave in new and different ways as the requirements of the application change, or to meet the needs of new applications. However, The source code of such a module is inviolate. No one is allowed to make source code changes to it. In following example, you can add new manner of salary calculation (such as Remotely class) without changing the previous codes.
+
+```java
+public abstract class Salary {
+
+   public final void calculate() {
+        System.out.println("First shared tasks is done.");
+        getBaseSalary();
+        System.out.println("Second shared tasks is done.");
+   }
+
+   public abstract void getBaseSalary();
+
+}
+
+public class Hourly extends Salary {
+
+    @Override
+    public void getBaseSalary() {
+        System.out.println("Special Task is done.");
+    }
+
+}
+
+public class Test {
+
+    public static void main(String[] args) {
+        Salary salary = ....
+        salary.calculate();
+    }
+}
+```
+
+- `When you face many same line of codes that are duplicated through deferring just some steps of your algorithm`. When you are implementing content of a method or function you can find some section of your code that vary from one type to another type. The feature of this sections are that one can redefine or modify these sections of an method or function without changing the algorithm's (method or function) main structure. For example if you want to solve this problem without this pattern you will face this sample:
+
+```bash
+function0: function1: ... functionN:
+
+ 1             1               1
+ 2             2               2
+...           ...             ...
+ 5             6               n
+ 3             3               3
+ 4             4               4
+ ...          ...             ...
+```
+
+As you can see, section cods 5, 6, n are different vary from one function to another function, however you have shared sections such as 1,2,3,4 that are duplicated. Lets consider a solution with one of famous java libraries.
+
+```java
+public abstract class InputStream implements Closeable {
+
+    public abstract int read() throws IOException;
+
+    public int read(byte b[], int off, int len) throws IOException {
+        ....
+
+        int c = read();
+        ....
+    }
+
+    ....
+
+}
+
+public class ByteArrayInputStream extends InputStream {  
+
+    ...
+
+    public synchronized int read() {
+        return (pos < count) ? (buf[pos++] & 0xff) : -1;
+        }
+    ...
+}
+```
+
+- `When you as a designer of a framework, want that your clients just to use any executable code that is passed as an argument to your framework`, which is expected to call back (execute) that argument at a given time. This execution may be immediate as in a synchronous callback, or it might happen at a later time as in an asynchronous callback. Lets consider one of famous ones.
+
+```java
+
+public abstract class HttpServlet extends GenericServlet 
+    implements java.io.Serializable  {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
+        ...
+    }
+
+protected void service(HttpServletRequest req, HttpServletResponse resp)
+    throws ServletException, IOException {
+        ....
+        doGet(req, resp);
+        ...
+    }
+    ...
+}
+}
+
+public class MyServlet extends HttpServlet {
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+
+            //do something
+        ...
+    }
+    ...
+}
+```
+
+### Structure of Template Design Pattern
+
+![alt text](image-66.png)
+
+In the above UML class diagram, the `AbstractClass` defines a `templateMethod()` operation that defines the skeleton (template) of a behavior by 
+
+- implementing the invariant parts of the behavior and
+    
+- sending to self the messages `primitive1()` and `primitive2()` , which, because they are implemented in `SubClass1` , allow that subclass to provide a variant implementation of those parts of the algorithm.
+
+### C++ Example
+
+![alt text](image-67.png)
+
+```C++
+
+#include <iostream>
+#include <memory>
+
+class View { // AbstractClass
+public:
+  // defines abstract primitive operations that concrete subclasses define to implement steps of an algorithm.
+  virtual void doDisplay() {}
+  // implements a template method defining the skeleton of an algorithm. The template method calls primitive operations as well as operations defined in AbstractClass or those of other objects.
+  void display() {
+    setFocus();
+    doDisplay();
+    resetFocus();
+  }
+  virtual ~View() = default;
+private:
+  void setFocus() {
+    std::cout << "View::setFocus\n";
+  }
+  void resetFocus() {
+    std::cout << "View::resetFocus\n";
+  }
+};
+
+class MyView : public View { // ConcreteClass
+  // implements the primitive operations to carry out subclass-specific steps of the algorithm.
+  void doDisplay() override {
+    // render the view's contents
+    std::cout << "MyView::doDisplay\n";
+  }
+};
+
+int main() {
+  // The smart pointers prevent memory leaks
+  std::unique_ptr<View> myview = std::make_unique<MyView>();
+  myview->display();
+}
+```
+
+// Output
+
+```bash
+View::setFocus
+MyView::doDisplay
+View::resetFocus
+```
+
+### Java Example
+
+![alt text](image-68.png)
+
+- Step 1 ::: Create a `Game` abstract class.
+
+```java
+public abstract class Game {  
+      
+       abstract void initialize();  
+       abstract void start();  
+       abstract void end();  
+      
+       public final void play(){  
+  
+          //initialize the game  
+          initialize();  
+  
+          //start game  
+          start();  
+            
+          //end game  
+          end();  
+       }  
+}// End of the Game abstract class.
+``` 
+
+- Step 2 ::: Create a `Chess` class that will extend `Game` abstract class for giving the definition to its method.
+
+```java
+public class Chess extends Game {  
+     @Override  
+       void initialize() {  
+          System.out.println("Chess Game Initialized! Start playing.");  
+       }  
+     @Override  
+       void start() {  
+          System.out.println("Game Started. Welcome to in the chess game!");  
+       }  
+    @Override  
+       void end() {  
+          System.out.println("Game Finished!");  
+       }  
+}// End of the Chess class.
+``` 
+
+- Step 3 ::: Create a `Soccer` class that will extend `Game` abstract class for giving the definition to its method.
+
+```java
+public class Soccer extends Game {  
+      
+    @Override  
+       void initialize() {  
+          System.out.println("Soccer Game Initialized! Start playing.");  
+       }  
+  
+    @Override  
+       void start() {  
+          System.out.println("Game Started. Welcome to in the Soccer game!");  
+       }  
+         
+    @Override  
+       void end() {  
+          System.out.println("Game Finished!");  
+       }  
+}// End of the Soccer class.
+``` 
+
+- Step 4 ::: Create a `TemplatePatternDemo` class.
+
+```java
+public class TemplatePatternDemo {  
+  
+public static void main(String[] args) throws InstantiationException, IllegalAccessException, ClassNotFoundException {  
+          
+         Class c=Class.forName(args[0]);  
+         Game game=(Game) c.newInstance();  
+         game.play();     
+       }  
+}// End of the Soccer class.
+``` 
+
+// Output
+
+![alt text](image-69.png)
+
 ## Visitor Design Pattern
 
 ## Blackboard Design Pattern
