@@ -9343,6 +9343,388 @@ public static void main(String[] args) throws InstantiationException, IllegalAcc
 
 ## Visitor Design Pattern
 
+Visitor pattern is a software design pattern that `separates the algorithm from the object structure`. 
+
+Because of this separation, new operations can be added to existing object structures without modifying the structures. It is one way to follow the open/closed principle in object-oriented programming and software engineering. 
+
+Another words, It Represent an operation to be performed on instances of a set of classes. Visitor lets a new operation be defined without changing the classes of the elements on which it operates.
+
+![alt text](image-70.png)
+
+In essence, the visitor allows adding new virtual functions to a family of classes, without modifying the classes. Instead, a visitor class is created that implements all of the appropriate specializations of the virtual function. The visitor takes the instance reference as input, and implements the goal through `double dispatch`. 
+
+Visitor pattern is used to implement double dispatch. In plain words it means that the code that gets executed depends on runtime types of two objects.
+
+When you call a regular virtual function, it is a single dispatch: the piece of code that gets executed depends on the runtime type of a single object, namely, the one the virtual method of which you are calling.
+
+With the visitor pattern, the method that is being called ultimately depends on the type of two objects - the type of the object implementing the equipmentVisitor, and the type of the object on which you call accept (i.e. the equipmentVisited subclass).
+
+To know more about Double Dispatch ::: https://en.wikipedia.org/wiki/Double_dispatch
+
+The nature of the Visitor makes it an ideal pattern to plug into public APIs, thus allowing its clients to perform operations on a class using a "visiting" class without having to modify the source.
+
+Programming languages with `sum types` and `pattern matching` obviate many of the benefits of the visitor pattern, as the visitor class is able to both easily branch on the type of the object and generate a compiler error if a new object type is defined which the visitor does not yet handle. 
+
+
+### Implementation of Visitor Pattern
+
+The visitor pattern requires a programming language that supports `single dispatch`, as common object-oriented languages (such as C++, Java, Smalltalk, Objective-C, Swift, JavaScript, Python and C#) do. Under this condition, consider two objects, each of some class type; one is termed the element, and the other is visitor. 
+
+![alt text](image-72.png)
+
+The visitor declares a `visit` method, which takes the element as an argument, for each class of element. Concrete visitors are derived from the visitor class and implement these visit methods, each of which implements part of the algorithm operating on the object structure. The state of the algorithm is maintained locally by the concrete visitor class. 
+
+The element declares an `accept` method to accept a visitor, taking the visitor as an argument. Concrete elements, derived from the element class, implement the accept method. In its simplest form, this is no more than a call to the visitor's `visit` method. Composite elements, which maintain a list of child objects, typically iterate over these, calling each child's accept method.
+
+The client creates the object structure, directly or indirectly, and instantiates the concrete visitors. When an operation is to be performed which is implemented using the Visitor pattern, it calls the accept method of the top-level element(s). 
+
+When the `accept` method is called in the program, its implementation is chosen based on both the dynamic type of the element and the static type of the visitor. When the associated visit method is called, its implementation is chosen based on both the dynamic type of the visitor and the static type of the element, as known from within the implementation of the accept method, which is the same as the dynamic type of the element. (As a bonus, if the visitor can't handle an argument of the given element's type, then the compiler will catch the error.) 
+
+Thus, the implementation of the visit method is chosen based on both the dynamic type of the element and the dynamic type of the visitor. This effectively implements double dispatch. For languages whose object systems support multiple dispatch, not only single dispatch, such as Common Lisp or C# via the Dynamic Language Runtime (DLR), implementation of the visitor pattern is greatly simplified (a.k.a. Dynamic Visitor) by allowing use of simple function overloading to cover all the cases being visited. A dynamic visitor, provided it operates on public data only, conforms to the open/closed principle (since it does not modify extant structures) and to the single responsibility principle (since it implements the Visitor pattern in a separate component). 
+
+In this way, one algorithm can be written to traverse a graph of elements, and many different kinds of operations can be performed during that traversal by supplying different kinds of visitors to interact with the elements based on the dynamic types of both the elements and the visitors. 
+
+
+### Why Visitor Design Pattern ?
+
+The issue arises when you have a complex structure, i.e., a hierarchy or something else that's not simply linear. When you can't simply iterate over the structure, a visitor is very handy.
+
+If I have a hierarchy (or tree), each Node has a list of children. When I want to apply a process to every node in the tree, it's pleasant to create a Visitor.
+
+A Node can then apply the Visitor to itself, and each of its child Nodes. Each child, transitively, does the same (apply the Visitor to itself and then any children).
+
+This use of a Visitor works out very nicely.
+
+When you have a super-simple data structure, Visitor doesn't add a lot of value.
+
+
+### Why not Visitor Design Pattern ?
+
+A drawback to this pattern, however, is that it makes extensions to the `class hierarchy` more difficult, as new classes typically require a new visit method to be added to each visitor. 
+
+### Which Problems Visitor Design Pattern Solves ?
+
+- It should be possible to define a new operation for (some) classes of an object structure without changing the classes.
+
+When new operations are needed frequently and the object structure consists of many unrelated classes, it's inflexible to add new subclasses each time a new operation is required because "[..] distributing all these operations across the various node classes leads to a system that's hard to understand, maintain, and change."
+
+### How Such Problems Visitor Design Pattern Solves ?
+
+- Define a separate (visitor) object that implements an operation to be performed on elements of an object structure.
+    
+- Clients traverse the object structure and call a dispatching operation accept (visitor) on an element — that "dispatches" (delegates) the request to the "accepted visitor object". The visitor object then performs the operation on the element ("visits the element").
+
+This makes it possible to create new operations independently from the classes of an object structure by adding new visitor objects. 
+
+### When Visitor Design Pattern can be apply ?
+
+- When many unrelated operations on an object structure are required,
+
+- When the classes that make up the object structure are known and not expected to change,
+
+- When new operations need to be added frequently,
+
+- When an algorithm involves several classes of the object structure, but it is desired to manage it in one single location,
+
+- When an algorithm needs to work across several independent class hierarchies.
+
+### Applications of Visitor Design Pattern
+
+- The design of a `2D computer-aided design (CAD) system`. At its core, there are several types to represent basic geometric shapes like circles, lines, and arcs. The entities are ordered into layers, and at the top of the type hierarchy is the drawing, which is simply a list of layers, plus some added properties. 
+
+A fundamental operation on this type hierarchy is saving a drawing to the system's native file format. At first glance, it may seem acceptable to add local save methods to all types in the hierarchy. But it is also useful to be able to save drawings to other file formats. Adding ever more methods for saving into many different file formats soon clutters the relatively pure original geometric data structure. 
+
+A naive way to solve this would be to maintain separate functions for each file format. Such a save function would take a drawing as input, traverse it, and encode into that specific file format. As this is done for each added different format, duplication between the functions accumulates. For example, saving a circle shape in a raster format requires very similar code no matter what specific raster form is used, and is different from other primitive shapes. The case for other primitive shapes like lines and polygons is similar. Thus, the code becomes a large outer loop traversing through the objects, with a large decision tree inside the loop querying the type of the object. Another problem with this approach is that it is very easy to miss a shape in one or more savers, or a new primitive shape is introduced, but the save routine is implemented only for one file type and not others, leading to code extension and maintenance problems. As the versions of the same file grows it becomes more complicated to maintain it. 
+
+Instead, the visitor pattern can be applied. It encodes the logical operation (i.e. save(image_tree)) on the whole hierarchy into one class (i.e. Saver) that implements the common methods for traversing the tree and describes virtual helper methods (i.e. save_circle, save_square, etc.) to be implemented for format specific behaviors. In the case of the CAD example, such format specific behaviors would be implemented by a subclass of Visitor (i.e. SaverPNG). As such, all duplication of type checks and traversal steps is removed. Additionally, the compiler now complains if a shape is omitted since it is now expected by the common base traversal/save function. 
+
+- Iteration loops : The visitor pattern may be used for iteration over container-like data structures just like Iterator pattern but with limited functionality.For example, iteration over a directory structure could be implemented by a function class instead of more conventional loop pattern. This would allow deriving various useful information from directories content by implementing a visitor functionality for every item while reusing the iteration code. It's widely employed in Smalltalk systems and can be found in C++ as well. A drawback of this approach, however, is that you can't break out of the loop easily or iterate concurrently (in parallel i.e. traversing two containers at the same time by a single i variable). The latter would require writing additional functionality for a visitor to support these features.
+
+
+### Structure of Visitor Design Pattern
+
+![alt text](image-71.png)
+
+In the UML class diagram above, the `ElementA` class doesn't implement a new operation directly. Instead, `ElementA` implements a dispatching operation `accept(visitor)` that "dispatches" (delegates) a request to the "accepted visitor object" (`visitor.visitElementA(this)`). 
+
+The `Visitor1` class implements the operation (`visitElementA(e:ElementA)`). 
+
+`ElementB` then implements `accept(visitor)` by dispatching to `visitor.visitElementB(this)`. 
+
+The `Visitor1` class implements the operation (`visitElementB(e:ElementB)`). 
+
+The UML sequence diagram shows the run-time interactions ::: 
+
+The `Client` object traverses the elements of an object structure (`ElementA`,`ElementB`) and calls `accept(visitor)` on each element.
+
+First, the `Client` calls `accept(visitor)` on `ElementA`, which calls `visitElementA(this)` on the accepted visitor object. 
+
+The element itself (this) is passed to the visitor so that it can "visit" `ElementA` (call `operationA()`). 
+
+Thereafter, the `Client` calls `accept(visitor)` on `ElementB`, which calls `visitElementB(this)` on the visitor that "visits" `ElementB` (calls `operationB()`). 
+
+### C++ Example
+
+```c++
+#include <iostream>
+#include <list>
+#include <memory>
+using namespace std;
+
+// Forwards
+class VisitorIntf;
+
+// Abstract interface for Element objects
+class ElementIntf {
+  public:
+	virtual ~ElementIntf();
+	virtual string name() = 0;
+	virtual void accept(shared_ptr<VisitorIntf> object) = 0;
+};
+
+ElementIntf::~ElementIntf() {}
+
+// Abstract interface for Visitor objects
+class VisitorIntf {
+  public:
+	virtual ~VisitorIntf();
+	virtual void visit(ElementIntf *object) = 0;
+};
+
+VisitorIntf::~VisitorIntf() {}
+
+// Concrete element object
+class ConcreteElement1 : public ElementIntf {
+  public:
+	string name();
+
+	void accept(shared_ptr<VisitorIntf> object);
+};
+
+string ConcreteElement1::name() { return "ConcreteElement1"; }
+
+void ConcreteElement1::accept(shared_ptr<VisitorIntf> object)
+{
+	object->visit(this);
+}
+
+// Concrete element object
+class ConcreteElement2 : public ElementIntf {
+  public:
+	string name();
+
+	void accept(shared_ptr<VisitorIntf> object);
+};
+
+string ConcreteElement2::name() { return "ConcreteElement2"; }
+
+void ConcreteElement2::accept(shared_ptr<VisitorIntf> object)
+{
+	object->visit(this);
+}
+
+// Visitor logic 1
+class ConcreteVisitor1 : public VisitorIntf {
+  public:
+	void visit(ElementIntf *object);
+};
+
+void ConcreteVisitor1::visit(ElementIntf *object)
+{
+	cout << "Visited " << object->name() << " using ConcreteVisitor1." << endl;
+}
+
+// Visitor logic 2
+class ConcreteVisitor2 : public VisitorIntf {
+  public:
+	void visit(ElementIntf *object);
+};
+
+void ConcreteVisitor2::visit(ElementIntf *object)
+{
+	cout << "Visited " << object->name() << " using ConcreteVisitor2." << endl;
+}
+
+//  Test main program
+int main()
+{
+	list<shared_ptr<ElementIntf>> elementList1;
+	elementList1.push_back(make_shared<ConcreteElement1>());
+	elementList1.push_back(make_shared<ConcreteElement2>());
+
+	shared_ptr<VisitorIntf> visitor1 = make_shared<ConcreteVisitor1>();
+
+	for (auto element : elementList1) {
+	element->accept(visitor1);
+	}
+
+	list<shared_ptr<ElementIntf>> elementList2;
+	elementList2.push_back(make_shared<ConcreteElement1>());
+	elementList2.push_back(make_shared<ConcreteElement2>());
+	shared_ptr<VisitorIntf> visitor2 = make_shared<ConcreteVisitor2>();
+
+	for (auto element : elementList2) {
+	element->accept(visitor2);
+	}
+}
+```
+
+### Java Example
+
+The following example is in the language Java, and shows how the contents of a tree of nodes (in this case describing the components of a car) can be printed. Instead of creating `print` methods for each node subclass (`Wheel`, `Engine`, `Body`, and `Car`), one visitor class (`CarElementPrintVisitor`) performs the required printing action. Because different node subclasses require slightly different actions to print properly, `CarElementPrintVisitor` dispatches actions based on the class of the argument passed to its `visit` method. `CarElementDoVisitor`, which is analogous to a save operation for a different file format, does likewise. 
+
+![alt text](image-73.png)
+
+```java
+import java.util.List;
+
+interface CarElement {
+    void accept(CarElementVisitor visitor);
+}
+
+interface CarElementVisitor {
+    void visit(Body body);
+    void visit(Car car);
+    void visit(Engine engine);
+    void visit(Wheel wheel);
+}
+
+class Wheel implements CarElement {
+  private final String name;
+
+  public Wheel(final String name) {
+      this.name = name;
+  }
+
+  public String getName() {
+      return name;
+  }
+
+  @Override
+  public void accept(CarElementVisitor visitor) {
+      /*
+       * accept(CarElementVisitor) in Wheel implements
+       * accept(CarElementVisitor) in CarElement, so the call
+       * to accept is bound at run time. This can be considered
+       * the *first* dispatch. However, the decision to call
+       * visit(Wheel) (as opposed to visit(Engine) etc.) can be
+       * made during compile time since 'this' is known at compile
+       * time to be a Wheel. Moreover, each implementation of
+       * CarElementVisitor implements the visit(Wheel), which is
+       * another decision that is made at run time. This can be
+       * considered the *second* dispatch.
+       */
+      visitor.visit(this);
+  }
+}
+
+class Body implements CarElement {
+  @Override
+  public void accept(CarElementVisitor visitor) {
+      visitor.visit(this);
+  }
+}
+
+class Engine implements CarElement {
+  @Override
+  public void accept(CarElementVisitor visitor) {
+      visitor.visit(this);
+  }
+}
+
+class Car implements CarElement {
+    private final List<CarElement> elements;
+
+    public Car() {
+        this.elements = List.of(
+            new Wheel("front left"), new Wheel("front right"),
+            new Wheel("back left"), new Wheel("back right"),
+            new Body(), new Engine()
+        );
+    }
+
+    @Override
+    public void accept(CarElementVisitor visitor) {
+        for (CarElement element : elements) {
+            element.accept(visitor);
+        }
+        visitor.visit(this);
+    }
+}
+
+class CarElementDoVisitor implements CarElementVisitor {
+    @Override
+    public void visit(Body body) {
+        System.out.println("Moving my body");
+    }
+
+    @Override
+    public void visit(Car car) {
+        System.out.println("Starting my car");
+    }
+
+    @Override
+    public void visit(Wheel wheel) {
+        System.out.println("Kicking my " + wheel.getName() + " wheel");
+    }
+
+    @Override
+    public void visit(Engine engine) {
+        System.out.println("Starting my engine");
+    }
+}
+
+class CarElementPrintVisitor implements CarElementVisitor {
+    @Override
+    public void visit(Body body) {
+        System.out.println("Visiting body");
+    }
+
+    @Override
+    public void visit(Car car) {
+        System.out.println("Visiting car");
+    }
+
+    @Override
+    public void visit(Engine engine) {
+        System.out.println("Visiting engine");
+    }
+
+    @Override
+    public void visit(Wheel wheel) {
+        System.out.println("Visiting " + wheel.getName() + " wheel");
+    }
+}
+
+public class VisitorDemo {
+    public static void main(final String[] args) {
+        Car car = new Car();
+
+        car.accept(new CarElementPrintVisitor());
+        car.accept(new CarElementDoVisitor());
+    }
+}
+```
+
+// Output
+
+```bash
+Visiting front left wheel
+Visiting front right wheel
+Visiting back left wheel
+Visiting back right wheel
+Visiting body
+Visiting engine
+Visiting car
+Kicking my front left wheel
+Kicking my front right wheel
+Kicking my back left wheel
+Kicking my back right wheel
+Moving my body
+Starting my engine
+Starting my car
+```
+
 ## Blackboard Design Pattern
 
 ## Single-serving visitor Design Pattern
