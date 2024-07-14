@@ -9863,7 +9863,7 @@ Subtasks often correspond to areas of specialization
 Knowledge sources must be complete for most of the inputs, there must exist at least one possible
 sequence of KS activations that leads to an acceptable solution.
 
-- (5) Define the vocabulary of the blackboard
+- (5) ::: Define the vocabulary of the blackboard :::
 
 Elaborate your first definition of the solution space and its abstraction levels.
 
@@ -9873,7 +9873,7 @@ If necessary, provide components that translate between blackboard entry represe
 
 Aim to Plug-and-Play for KS
 
-- (6) Specify the control of the system
+- (6) ::: Specify the control of the system :::
 
 Classify changes to the blackboard
 
@@ -9904,7 +9904,7 @@ Prefer hypotheses that cover a large part of the problem.
 “Island driving” where an “island of certainty” is built into a
 complete top-level solution.
 
-- (7) Implement the knowledge sources
+- (7) ::: Implement the knowledge sources :::
 
 Identify condition-part and action-part of KS to match with Control.
 
