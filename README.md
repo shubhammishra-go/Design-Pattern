@@ -9914,7 +9914,165 @@ Maintain independence and exchangeability of KS by not making any assumptions ab
 
 for Java Example visit here ::: https://github.com/timovandeput/objectboard?tab=readme-ov-file
 
-## Single-serving visitor Design Pattern
+## Single-Serving Visitor Design Pattern
+
+Single-Serving Visitor Pattern is a design pattern. Its intent is to optimise the implementation of a `visitor` that is allocated, used only once, and then deleted (which is the case of most visitors). 
+
+
+### Applicability
+
+The single-serving visitor pattern should be used when visitors do not need to remain in memory.
+
+This is often the case when visiting a hierarchy of objects (such as when the visitor pattern is used together with the composite pattern) to perform a single task on it, for example counting the number of cameras in a 3D scene. 
+
+The regular visitor pattern should be used when the visitor must remain in memory. This occurs when the visitor is configured with a number of parameters that must be kept in memory for a later use of the visitor (for example, for storing the rendering options of a 3D scene renderer). 
+
+However, if there should be only one instance of such a visitor in a whole program, it can be a good idea to implement it both as a single-serving visitor and as a singleton. In doing so, it is ensured that the single-serving visitor can be called later with its parameters unchanged (in this particular case "single-serving visitor" is an abuse of language since the visitor can be used several times). 
+
+### Usage examples
+
+The single-serving visitor is called through the intermediate of static methods. 
+
+- Without parameters:
+
+```bash
+     Element* elem;
+     SingleServingVisitor::apply_to(elem);
+```
+
+- With parameters:
+
+```bash
+     Element* elem;
+     TYPE param1, param2;
+     SingleServingVisitor::apply_to(elem, param1, param2);
+```
+
+- Implementation as a singleton:
+
+```bash
+     Element* elem;
+     TYPE param1, param2;
+     SingleServingVisitor::set_param1(param1);
+     SingleServingVisitor::set_param2(param2);
+     SingleServingVisitor::apply_to(elem);
+```
+
+
+### Consequences
+
+// Pros
+
+- No "zombie" objects. With a single-serving visitor, it is ensured that visitors are allocated when needed and destroyed once useless.
+
+- A simpler interface than visitor. The visitor is created, used and free by the sole call of the apply_to static method.
+
+// Cons
+
+- Repeated allocation. At each call of the apply_to method, a single-serving visitor is created then discarded, which is time-consuming. In contrast, the singleton only performs one allocation.
+
+
+### C++ Implementation
+
+- Without Parameters
+
+```c++
+// Declaration
+class Element;
+class ElementA;
+class ElementB;
+class SingleServingVisitor;
+
+... // Same as with the [[visitor pattern]].
+
+// Definition
+class SingleServingVisitor {
+protected:
+    SingleServingVisitor();
+public:
+    ~SingleServingVisitor();
+
+    static void apply_to(Element*);
+    virtual void visit_ElementA(ElementA*) = 0;
+    virtual void visit_ElementB(ElementB*) = 0;
+}
+
+// Implementation
+void SingleServingVisitor::apply_to(Element* elem) 
+{
+    SingleServingVisitor ssv;
+    elem.accept(ssv);
+}
+```
+
+- Passing Parameters 
+
+If the single-serving visitor has to be initialised, the parameters have to be passed through the static method: 
+
+```c++
+void SingleServingVisitor::apply_to(Element* elem, TYPE param1, TYPE param2, ...) 
+{
+    SingleServingVisitor ssv(param1, param2, ...);
+    elem.accept(&ssv);
+}
+```
+
+- Implementation as a singleton
+
+This implementation ensures: that there is at most one instance of the single-serving visitor
+and the visitor can be accessed later.
+
+```c++
+// Definition
+class SingleServingVisitor {
+protected:
+    static SingleServingVisitor* instance_;
+    TYPE param1_;
+    TYPE param2_;
+
+    SingleServingVisitor();
+
+    static SingleServingVisitor* get_instance();
+    // Note: get_instance method does not need to be public
+
+public:
+    ~SingleServingVisitor();
+
+    static void apply_to(Element*);
+
+    // static methods to access parameters
+    static void set_param1(TYPE);
+    static void set_param2(TYPE);
+
+    virtual void visit_ElementA(ElementA*) = 0;
+    virtual void visit_ElementB(ElementB*) = 0;
+}
+
+// Implementation
+SingleServingVisitor* SingleServingVisitor::instance_ = NULL;
+
+SingleServingVisitor* SingleServingVisitor::get_instance() 
+{
+    if (this->instance_ == NULL)
+        this->instance_ = new SingleServingVisitor();
+    return this->instance_;
+}
+
+void SingleServingVisitor::apply_to(Element* elem) 
+{
+    elem->accept(get_instance());
+}
+
+void SingleServingVisitor::set_param1(TYPE param1) 
+{
+    getInstance()->param1_ = param1;
+}
+
+void SingleServingVisitor::set_param2(TYPE param2) 
+{
+    getInstance()->param2_ = param2;
+}
+```
 
 ## Null Object Design Pattern
 
