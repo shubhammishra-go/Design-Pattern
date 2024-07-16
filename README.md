@@ -10076,7 +10076,201 @@ void SingleServingVisitor::set_param2(TYPE param2)
 
 ## Null Object Design Pattern
 
-## Protocol stack Design Pattern
+A null object is an object with no referenced value or with defined neutral (null) behavior. 
+
+The null object design pattern, which describes the uses of such objects and their behavior (or lack thereof), was first published as "Void Value" and later in the Pattern Languages of Program Design book series as "Null Object".
+
+Designed to act as a default value of an object.
+
+The intent of a Null Object is to encapsulate the absence of an object by providing a substitutable alternative that offers suitable default do nothing behavior. In short, a design where "nothing will come of nothing"
+
+In most object-oriented languages, such as Java or C#, references may be null. These references need to be checked to ensure they are not null before invoking any methods, because methods typically cannot be invoked on null references. 
+
+Instead of using a null reference to convey the absence of an object (for instance, a non-existent customer), one uses an object which implements the expected interface, but whose method body is empty. 
+
+A key purpose of using a null object is to avoid conditionals of different kinds, resulting in code that is more focused, and quicker to read and follow – i.e. improved readability. One advantage of this approach over a working default implementation is that a null object is very predictable and has no side effects: it does nothing. 
+
+
+For example, a function may retrieve a list of files in a folder and perform some action on each. In the case of an empty folder, one response may be to throw an exception or return a null reference rather than a list. Thus, the code expecting a list must verify that it in fact has one before continuing, which can complicate the design. 
+
+By returning a null object (i.e., an empty list) instead, there is no need to verify that the return value is in fact a list. The calling function may simply iterate the list as normal, effectively doing nothing. It is, however, still possible to check whether the return value is a null object (an empty list) and react differently if desired. 
+
+The null object pattern can also be used to act as a stub for testing, if a certain feature such as a database is not available for testing. 
+
+Provide an object as a surrogate for the lack of an object of a given type. The Null Object provides intelligent "do nothing" behavior, hiding the details from its collaborators.
+
+
+### Why Null Object Design Pattern ?
+
+- defines class hierarchies consisting of real objects and null objects. Null objects can be used in place of real objects when the object is expected to do nothing. Whenever client code expects a real object, it can also take a null object.
+
+- makes client code simple. Clients can treat real collaborators and null collaborators uniformly. Clients normally don't know (and shouldn't care) whether they're dealing with a real or a null collaborator. This simplifies client code, because it avoids having to write testing code which handles the null collaborator specially.
+
+- encapsulates the do nothing code into the null object. The do nothing code is easy to find. Its variation with the AbstractObject and RealObject classes is readily apparent. It can be efficiently coded to do nothing. It does not require variables that contain null values because those values can be hard-coded as constants or the do nothing code can avoid using those values altogether.
+
+- makes the do nothing code in the null object easy to reuse. Multiple clients which all need their collaborators to do nothing will all do nothing the same way. If the do nothing behavior needs to be modified, the code can be changed in one place. Thereafter, all clients will continue to use the same do nothing behavior, which is now the modified do nothing behavior.
+
+- makes the do nothing behavior difficult to distribute or mix into the real behavior of several collaborating objects. The same do nothing behavior cannot easily be added to several classes unless those classes all delegate the behavior to a class which can be a null object class.
+
+### Why not Null Object Design Pattern ?
+
+- can necessitate creating a new NullObject class for every new AbstractObject class.
+
+- can be difficult to implement if various clients do not agree on how the null object should do nothing as when your AbstractObject interface is not well defined.
+
+- always acts as a do nothing object. The Null Object does not transform into a Real Object.
+
+### When Null Object Design Pattern can be apply ?
+
+Use the Null Object pattern when:
+
+- an object requires a collaborator. The Null Object pattern does not introduce this collaboration--it makes use of a collaboration that already exists.
+
+- some collaborator instances should do nothing.
+
+- you want to abstract the handling of null away from the client.
+
+### Structure of Null Object Design Pattern
+
+![alt text](image-76.png)
+
+// Participants
+
+- `Client`  :::  requires a collaborator.
+
+- `AbstractObject` ::: declares the interface for Client's collaborator and implements default behavior for the interface common to all classes, as appropriate.
+
+- `RealObject` ::: defines a concrete subclass of AbstractObject whose instances provide useful behavior that Client expects.
+
+- `NullObject` ::: provides an interface identical to AbstractObject's so that a null object can be substituted for a real object. and implements its interface to do nothing. What exactly it means to do nothing depends on what sort of behavior Client is expecting. when there is more than one way to do nothing, more than one NullObject class may be required.
+
+
+// Collaborations
+
+Clients use the AbstractObject class interface to interact with their collaborators. If the receiver is a RealObject, then the request is handled to provide real behavior. If the receiver is a NullObject, the request is handled by doing nothing or at least providing a null result.
+
+
+### Implementation of Null Object pattern
+
+There are several issues to consider when implementing the Null Object pattern:
+
+- Null Object as Singleton. The Null Object class is often implemented as a Singleton [GHJV95, page 127]. Since a null object usually does not have any state, its state can't change, so multiple instances are identical. Rather than use multiple identical instances, the system can just use a single instance repeatedly.
+
+- Clients don't agree on null behavior. If some clients expect the null object to do nothing one way and some another, multiple NullObject classes will be required. If the do nothing behavior must be customized at run time, the NullObject class will require pluggable variables so that the client can specify how the null object should do nothing (see the discussion of pluggable adaptors in the Adapter pattern [GHJV95, page 142]). This may generally be a symptom of the AbstractObject not having a well defined (semantic) interface.
+
+- Transformation to Real Object. A Null Object does not transform to become a Real Object. If the object may decide to stop providing do nothing behavior and start providing real behavior, it is not a null object. It may be a real object with a do nothing mode, such as a controller which can switch in and out of read-only mode. If it is a single object which must mutate from a do nothing object to a real one, it should be implemented with the State pattern [GHJV95, page 305] or perhaps the Proxy pattern [GHJV95, page 207]. In this case a Null State may be used or the proxy may hold a Null Object.
+
+- Null Object is not Proxy. The use of a null object can be similar to that of a Proxy [GHJV95, page 207], but the two patterns have different purposes. A proxy provides a level of indirection when accessing a real subject, thus controlling access to the subject. A null collaborator does not hide a real object and control access to it, it replaces the real object. A proxy may eventually mutate to start acting like a real subject. A null object will not mutate to start providing real behavior, it will always provide do nothing behavior.
+
+- Null Object as special Strategy. A Null Object can be a special case of the Strategy pattern [GHJV95, page 315]. Strategy specifies several ConcreteStrategy classes as different approaches for accomplishing a task. If one of those approaches is to consistently do nothing, that ConcreteStrategy is a NullObject. For example, a Controller is a View's Strategy for handling input, and NoController is the Strategy that ignores all input.
+
+- Null Object as special State. A Null Object can be a special case of the State pattern [GHJV95, page 305]. Normally, each ConcreteState has some do nothing methods because they're not appropriate for that state. In fact, a given method is often implemented to do something useful in most states but to do nothing in at least one state. If a particular ConcreteState implements most of its methods to do nothing or at least give null results, it becomes a do nothing state and as such is a null state.
+
+- Null Object as Visitor host. A Null Object can be used to allow a Visitor [GHJV95, page 331] to safely visit a hierarchy and handle the null situation.
+
+- The Null Object class is not a mixin. Null Object is a concrete collaborator class that acts as the collaborator for a client which needs one. The null behavior is not designed to be mixed into an object that needs some do nothing behavior. It is designed for a class which delegates to a collaborator all of the behavior that may or may not be do nothing behavior. [Woolf96]
+
+### C++ Example
+
+```c++
+#include <iostream>
+
+class Animal {
+ public:
+  virtual ~Animal() = default;
+
+  virtual void MakeSound() const = 0;
+};
+
+class Dog : public Animal {
+ public:
+  virtual void MakeSound() const override { std::cout << "woof!" << std::endl; }
+};
+
+class NullAnimal : public Animal {
+ public:
+  virtual void MakeSound() const override {}
+};
+```
+
+Here, the idea is that there are situations where a pointer or reference to an `Animal` object is required, but there is no appropriate object available. A null reference is impossible in standard-conforming C++. 
+
+A null` Animal*` pointer is possible, and could be useful as a place-holder, but may not be used for direct dispatch: `a->MakeSound()` is undefined behavior if `a` is a null pointer. 
+
+The null object pattern solves this problem by providing a special `NullAnimal` class which can be instantiated bound to an `Animal` pointer or reference. 
+
+
+The special null class must be created for each class hierarchy that is to have a null object, since a `NullAnimal` is of no use when what is needed is a null object with regard to some Widget base class that is not related to the `Animal` hierarchy. 
+
+
+Note that NOT having a null class at all is an important feature, in contrast to languages where "anything is a reference" (e.g., Java and C#). In C++, the design of a function or method may explicitly state whether null is allowed or not. 
+
+
+```c++
+// Function which requires an |Animal| instance, and will not accept null.
+void DoSomething(const Animal& animal) {
+  // |animal| may never be null here.
+}
+
+// Function which may accept an |Animal| instance or null.
+void DoSomething(const Animal* animal) {
+  // |animal| may be null.
+}
+```
+
+
+### Java Example
+
+```java
+public interface Animal {
+	void makeSound();
+}
+
+public class Dog implements Animal {
+	public void makeSound() {
+		System.out.println("woof!");
+	}
+}
+
+public class NullAnimal implements Animal {
+	public void makeSound() {
+        // silence...
+	}
+}
+```
+
+This code illustrates a variation of the C++ example, above, using the Java language. As with C++, a null class can be instantiated in situations where a reference to an `Animal` object is required, but there is no appropriate object available. 
+
+A null `Animal` object is possible (`Animal myAnimal = null;`) and could be useful as a place-holder, but may not be used for calling a method. In this example, `myAnimal.makeSound();` will throw a `NullPointerException`. Therefore, additional code may be necessary to test for null objects. 
+
+The null object pattern solves this problem by providing a special `NullAnimal` class which can be instantiated as an object of type `Animal`. As with C++ and related languages, that special null class must be created for each class hierarchy that needs a null object, since a `NullAnimal` is of no use when what is needed is a null object that does not implement the `Animal` interface. 
+
+### JavaScript Example
+
+In `duck-typed languages like JavaScript`, language inheritance is not necessary to provide expected behavior. 
+
+```javascript
+class Dog {
+  sound() {
+    return 'bark';
+  }
+}
+
+class NullAnimal {
+  sound() {
+    return null;
+  }
+}
+
+function getAnimal(type) {
+  return type === 'dog' ? new Dog() : new NullAnimal();
+}
+
+['dog', null].map((animal) => getAnimal(animal).sound());
+// Returns ["bark", null]
+```
+
+## Protocol Stack Design Pattern
 
 ## Specification Design Pattern
 
