@@ -10298,8 +10298,10 @@ The lowest protocol always deals with low-level interaction with the communicati
 
 ### General protocol suite description
 
- `T ~ ~ ~ T`
-`[A]     [B]_____[C]`
+```c#
+ T ~ ~ ~ T
+[A]     [B]_____[C]
+```
 
 Imagine three computers: A, B, and C. A and B both have radio equipment and can communicate via the airwaves using a suitable network protocol (such as IEEE 802.11). 
 
