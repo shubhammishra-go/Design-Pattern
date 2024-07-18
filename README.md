@@ -10218,7 +10218,6 @@ void DoSomething(const Animal* animal) {
 }
 ```
 
-
 ### Java Example
 
 ```java
@@ -10271,6 +10270,77 @@ function getAnimal(type) {
 ```
 
 ## Protocol Stack Design Pattern
+
+Protocol stacks are a layered collection of protocols that work together to provide communication services. Each protocol in the stack is responsible for a specific task, and by layering them, we can create a more robust and reliable system.
+
+The protocol stack or network stack is an implementation of a computer networking protocol suite or protocol family. in which, Communications are handled by multiple layers, which form an encapsulation hierarchy.
+
+Some of these terms are used interchangeably but strictly speaking, the suite is the definition of the communication protocols, and the stack is the software implementation of them.
+
+![alt text](image-77.png)
+
+Individual protocols within a suite are often designed with a single purpose in mind. 
+
+This modularization simplifies design and evaluation. Because each protocol module usually communicates with two others, they are commonly imagined as layers in a stack of protocols. 
+
+The lowest protocol always deals with low-level interaction with the communications hardware. Each higher layer adds additional capabilities. User applications usually deal only with the topmost layers.
+
+// To know more about this pattern
+
+- https://novelbits.io/protocol-stacks-layered-architecture/
+
+- https://www.sciencedirect.com/topics/computer-science/protocol-stack
+
+- https://www.w3.org/People/Frystyk/thesis/TcpIp.html
+
+- https://www2.it.uu.se/education/course/homepage/dsp/vt19/modules/module-1/tcpip-protocol-stack/
+
+
+### General protocol suite description
+
+ `T ~ ~ ~ T`
+`[A]     [B]_____[C]`
+
+Imagine three computers: A, B, and C. A and B both have radio equipment and can communicate via the airwaves using a suitable network protocol (such as IEEE 802.11). 
+
+B and C are connected via a cable, using it to exchange data (again, with the help of a protocol, for example Point-to-Point Protocol). However, neither of these two protocols will be able to transport information from A to C, because these computers are conceptually on different networks. An inter-network protocol is required to connect them. 
+
+One could combine the two protocols to form a powerful third, mastering both cable and wireless transmission, but a different super-protocol would be needed for each possible combination of protocols. It is easier to leave the base protocols alone, and design a protocol that can work on top of any of them (the Internet Protocol is an example). This will make two stacks of two protocols each. The inter-network protocol will communicate with each of the base protocol in their simpler language; the base protocols will not talk directly to each other. 
+
+A request on computer A to send a chunk of data to C is taken by the upper protocol, which (through whatever means) knows that C is reachable through B. It, therefore, instructs the wireless protocol to transmit the data packet to B. On this computer, the lower layer handlers will pass the packet up to the inter-network protocol, which, on recognizing that B is not the final destination, will again invoke lower-level functions. This time, the cable protocol is used to send the data to C. There, the received packet is again passed to the upper protocol, which (with C being the destination) will pass it on to a higher protocol or application on C. 
+
+
+In practical implementation, protocol stacks are often divided into three major sections: `media`, `transport`, and `applications`. 
+
+A particular operating system or platform will often have two well-defined software interfaces: one between the media and transport layers, and one between the transport layers and applications. The media-to-transport interface defines how transport protocol software makes use of particular media and hardware types and is associated with a device driver. For example, this interface level would define how TCP/IP transport software would talk to the network interface controller. Examples of these interfaces include ODI and NDIS in the Microsoft Windows and DOS environment. The application-to-transport interface defines how application programs make use of the transport layers. For example, this interface level would define how a web browser program would talk to TCP/IP transport software. Examples of these interfaces include Berkeley sockets and System V STREAMS in Unix-like environments, and Winsock for Microsoft Windows. 
+
+
+### List of protocol stack architectures
+
+This is a list of `protocol stack architectures`. A protocol stack is a suite of complementary communications protocols in a computer network or a computer bus system. 
+
+- ARCNET     ::: https://en.wikipedia.org/wiki/ARCNET
+- AppleTalk  ::: https://en.wikipedia.org/wiki/AppleTalk
+- ATM        ::: https://en.wikipedia.org/wiki/Asynchronous_Transfer_Mode
+- Bluetooth  ::: https://en.wikipedia.org/wiki/Bluetooth
+- DECnet     ::: https://en.wikipedia.org/wiki/DECnet
+- Ethernet   ::: https://en.wikipedia.org/wiki/Ethernet
+- FDDI       ::: https://en.wikipedia.org/wiki/Fiber_distributed_data_interface
+- HIPPI      ::: https://en.wikipedia.org/wiki/HIPPI
+- USB        ::: https://en.wikipedia.org/wiki/Universal_Serial_Bus
+- IPX        ::: https://en.wikipedia.org/wiki/IPX
+- Myrinet    ::: https://en.wikipedia.org/wiki/Myrinet  
+- QsNet      ::: https://en.wikipedia.org/wiki/QsNet
+- SPX        ::: https://en.wikipedia.org/wiki/Sequenced_packet_exchange
+- Token Ring ::: https://en.wikipedia.org/wiki/Token_Ring
+- Frame Relay ::: https://en.wikipedia.org/wiki/Frame_Relay
+- OSI protocol suite ::: https://en.wikipedia.org/wiki/OSI_protocol_suite
+- System Network Architecture ::: https://en.wikipedia.org/wiki/System_network_architecture
+- X.25 protocol suite  ::: https://en.wikipedia.org/wiki/X.25_protocol_suite
+- Internet protocol suite https://en.wikipedia.org/wiki/Internet_protocol_suite
+- IEEE-488 ::: https://en.wikipedia.org/wiki/IEEE-488
+- IEEE 1394 aka FireWire, iLink ::: https://en.wikipedia.org/wiki/FireWire
+- IEEE 802.11 aka Wireless LAN (Wi-Fi certification) ::: https://en.wikipedia.org/wiki/IEEE_802.11
 
 ## Specification Design Pattern
 
