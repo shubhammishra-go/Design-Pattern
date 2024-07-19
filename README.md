@@ -10346,6 +10346,297 @@ This is a list of `protocol stack architectures`. A protocol stack is a suite of
 
 ## Specification Design Pattern
 
+Specification pattern is a particular software design pattern, whereby business rules can be recombined by chaining the business rules together using boolean logic. 
+
+It allows us to encapsulate some piece of domain knowledge into a single unit - specification - and reuse it in different parts of the code base.
+
+The pattern is frequently used in the context of `domain-driven design`. 
+
+One Domain-Driven-Design solution to the problem of where to place querying, sorting, and paging logic is to use a Specification. The Specification design pattern describes a query in an object. 
+
+So to encapsulate a paged query that searches for some products, one might create a PagedProduct specification that would take in any necessary parameters (pageSize, pageNumber, filter). 
+Then one of your repository methods (usually a List() overload) would accept an ISpecification and would be able to produce the expected result given the specification. There are several benefits to this approach. The specification has a name (as opposed to just a bunch of LINQ expressions) that you can reason about and discuss. It can be unit tested in isolation to ensure correctness. And it can easily be reused if you need the same behavior (say on an MVC View action and a Web API action, as well as in various services). Further, a specification can also be used to describe the shape of the data to be returned, so that queries can return just the data they required. This eliminates the need for lazy loading in web applications (bad idea) and helps keep repository implementations from becoming cluttered with these details.
+
+`Recombinable business logic in a Boolean fashion. `
+
+A specification pattern outlines a business rule that is combinable with other business rules. 
+
+![alt text](image-78.png)
+
+In this pattern, a unit of business logic inherits its functionality from the abstract aggregate Composite Specification class. The Composite Specification class has one function called IsSatisfiedBy that returns a boolean value. 
+
+After instantiation, the specification is "chained" with other specifications, making new specifications easily maintainable, yet highly customizable business logic. Furthermore, upon instantiation the business logic may, through method invocation or inversion of control, have its state altered in order to become a delegate of other classes such as a persistence repository.
+
+As a consequence of performing runtime composition of high-level business/domain logic, the Specification pattern is a convenient tool for converting ad-hoc user search criteria into low level logic to be processed by repositories. 
+
+Since a specification is an encapsulation of logic in a reusable form it is very simple to thoroughly unit test, and when used in this context is also an implementation of the humble object pattern. 
+
+To know more about ::: http://www.martinfowler.com/apsupp/spec.pdf
+
+
+### C++
+
+```c++
+template <class T>
+class ISpecification
+{
+public:
+	virtual ~ISpecification() = default;
+	virtual bool IsSatisfiedBy(T Candidate) const = 0;
+	virtual ISpecification<T>* And(const ISpecification<T>& Other) const = 0;
+	virtual ISpecification<T>* AndNot(const ISpecification<T>& Other) const = 0;
+	virtual ISpecification<T>* Or(const ISpecification<T>& Other) const = 0;
+	virtual ISpecification<T>* OrNot(const ISpecification<T>& Other) const = 0;
+	virtual ISpecification<T>* Not() const = 0;
+};
+
+template <class T>
+class CompositeSpecification : public ISpecification<T>
+{
+public:
+	virtual bool IsSatisfiedBy(T Candidate) const override = 0;
+
+	virtual ISpecification<T>* And(const ISpecification<T>& Other) const override;
+	virtual ISpecification<T>* AndNot(const ISpecification<T>& Other) const override;
+	virtual ISpecification<T>* Or(const ISpecification<T>& Other) const override;
+	virtual ISpecification<T>* OrNot(const ISpecification<T>& Other) const override;
+	virtual ISpecification<T>* Not() const override;
+};
+
+template <class T>
+class AndSpecification final : public CompositeSpecification<T>
+{
+public:
+	const ISpecification<T>& Left;
+	const ISpecification<T>& Right;
+
+	AndSpecification(const ISpecification<T>& InLeft, const ISpecification<T>& InRight)
+		: Left(InLeft),
+		  Right(InRight) { }
+
+	virtual bool IsSatisfiedBy(T Candidate) const override
+	{
+		return Left.IsSatisfiedBy(Candidate) && Right.IsSatisfiedBy(Candidate);
+	}
+};
+
+template <class T>
+ISpecification<T>* CompositeSpecification<T>::And(const ISpecification<T>& Other) const
+{
+	return new AndSpecification<T>(*this, Other);
+}
+
+template <class T>
+class AndNotSpecification final : public CompositeSpecification<T>
+{
+public:
+	const ISpecification<T>& Left;
+	const ISpecification<T>& Right;
+
+	AndNotSpecification(const ISpecification<T>& InLeft, const ISpecification<T>& InRight)
+		: Left(InLeft),
+		  Right(InRight) { }
+
+	virtual bool IsSatisfiedBy(T Candidate) const override
+	{
+		return Left.IsSatisfiedBy(Candidate) && !Right.IsSatisfiedBy(Candidate);
+	}
+};
+
+template <class T>
+class OrSpecification final : public CompositeSpecification<T>
+{
+public:
+	const ISpecification<T>& Left;
+	const ISpecification<T>& Right;
+
+	OrSpecification(const ISpecification<T>& InLeft, const ISpecification<T>& InRight)
+		: Left(InLeft),
+		  Right(InRight) { }
+
+	virtual bool IsSatisfiedBy(T Candidate) const override
+	{
+		return Left.IsSatisfiedBy(Candidate) || Right.IsSatisfiedBy(Candidate);
+	}
+};
+
+template <class T>
+class OrNotSpecification final : public CompositeSpecification<T>
+{
+public:
+	const ISpecification<T>& Left;
+	const ISpecification<T>& Right;
+
+	OrNotSpecification(const ISpecification<T>& InLeft, const ISpecification<T>& InRight)
+		: Left(InLeft),
+		  Right(InRight) { }
+
+	virtual bool IsSatisfiedBy(T Candidate) const override
+	{
+		return Left.IsSatisfiedBy(Candidate) || !Right.IsSatisfiedBy(Candidate);
+	}
+};
+
+template <class T>
+class NotSpecification final : public CompositeSpecification<T>
+{
+public:
+	const ISpecification<T>& Other;
+
+	NotSpecification(const ISpecification<T>& InOther)
+		: Other(InOther) { }
+
+	virtual bool IsSatisfiedBy(T Candidate) const override
+	{
+		return !Other.IsSatisfiedBy(Candidate);
+	}
+};
+
+template <class T>
+ISpecification<T>* CompositeSpecification<T>::AndNot(const ISpecification<T>& Other) const
+{
+	return new AndNotSpecification<T>(*this, Other);
+}
+
+template <class T>
+ISpecification<T>* CompositeSpecification<T>::Or(const ISpecification<T>& Other) const
+{
+	return new OrSpecification<T>(*this, Other);
+}
+
+template <class T>
+ISpecification<T>* CompositeSpecification<T>::OrNot(const ISpecification<T>& Other) const
+{
+	return new OrNotSpecification<T>(*this, Other);
+}
+
+template <class T>
+ISpecification<T>* CompositeSpecification<T>::Not() const
+{
+	return new NotSpecification<T>(*this);
+}
+```
+
+### TypeScript Example
+
+```typescript
+export interface ISpecification {
+  isSatisfiedBy(candidate: unknown): boolean;
+  and(other: ISpecification): ISpecification;
+  andNot(other: ISpecification): ISpecification;
+  or(other: ISpecification): ISpecification;
+  orNot(other: ISpecification): ISpecification;
+  not(): ISpecification;
+}
+
+export abstract class CompositeSpecification implements ISpecification {
+  abstract isSatisfiedBy(candidate: unknown): boolean;
+
+  and(other: ISpecification): ISpecification {
+    return new AndSpecification(this, other);
+  }
+
+  andNot(other: ISpecification): ISpecification {
+    return new AndNotSpecification(this, other);
+  }
+
+  or(other: ISpecification): ISpecification {
+    return new OrSpecification(this, other);
+  }
+
+  orNot(other: ISpecification): ISpecification {
+    return new OrNotSpecification(this, other);
+  }
+
+  not(): ISpecification {
+    return new NotSpecification(this);
+  }
+}
+
+export class AndSpecification extends CompositeSpecification {
+  constructor(private leftCondition: ISpecification, private rightCondition: ISpecification) {
+    super();
+  }
+
+  isSatisfiedBy(candidate: unknown): boolean {
+    return this.leftCondition.isSatisfiedBy(candidate) && this.rightCondition.isSatisfiedBy(candidate);
+  }
+}
+
+export class AndNotSpecification extends CompositeSpecification {
+  constructor(private leftCondition: ISpecification, private rightCondition: ISpecification) {
+    super();
+  }
+
+  isSatisfiedBy(candidate: unknown): boolean {
+    return this.leftCondition.isSatisfiedBy(candidate) && this.rightCondition.isSatisfiedBy(candidate) !== true;
+  }
+}
+
+export class OrSpecification extends CompositeSpecification {
+  constructor(private leftCondition: ISpecification, private rightCondition: ISpecification) {
+    super();
+  }
+
+  isSatisfiedBy(candidate: unknown): boolean {
+    return this.leftCondition.isSatisfiedBy(candidate) || this.rightCondition.isSatisfiedBy(candidate);
+  }
+}
+
+export class OrNotSpecification extends CompositeSpecification {
+  constructor(private leftCondition: ISpecification, private rightCondition: ISpecification) {
+    super();
+  }
+
+  isSatisfiedBy(candidate: unknown): boolean {
+    return this.leftCondition.isSatisfiedBy(candidate) || this.rightCondition.isSatisfiedBy(candidate) !== true;
+  }
+}
+
+export class NotSpecification extends CompositeSpecification {
+  constructor(private wrapped: ISpecification) {
+    super();
+  }
+
+  isSatisfiedBy(candidate: unknown): boolean {
+    return !this.wrapped.isSatisfiedBy(candidate);
+  }
+}
+```
+
+In the following example, we are retrieving invoices and sending them to a collection agency if
+
+- they are overdue,
+- notices have been sent, and
+- they are not already with the collection agency.
+
+This example is meant to show the result of how the logic is 'chained' together.
+
+This usage example assumes a previously defined `OverdueSpecification` class that is satisfied when an invoice's due date is 30 days or older, a `NoticeSentSpecification` class that is satisfied when three notices have been sent to the customer, and an `InCollectionSpecification` class that is satisfied when an invoice has already been sent to the collection agency. The implementation of these classes isn't important here.
+
+Using these three specifications, we created a new specification called `SendToCollection` which will be satisfied when an invoice is overdue, when notices have been sent to the customer, and are not already with the collection agency.
+
+```typescript
+
+var overDue = new OverDueSpecification();
+var noticeSent = new NoticeSentSpecification();
+var inCollection = new InCollectionSpecification();
+
+// Example of specification pattern logic chaining
+var sendToCollection = overDue.And(noticeSent).And(inCollection.Not());
+
+var invoiceCollection = Service.GetInvoices();
+
+foreach (var currentInvoice in invoiceCollection)
+{
+    if (sendToCollection.IsSatisfiedBy(currentInvoice))
+    {
+        currentInvoice.SendToCollection();
+    }
+}
+
+```
+
 ## Fluent interface Design Pattern
 
 ## Servant Design Pattern
