@@ -10520,6 +10520,7 @@ ISpecification<T>* CompositeSpecification<T>::Not() const
 ### TypeScript Example
 
 ```typescript
+
 export interface ISpecification {
   isSatisfiedBy(candidate: unknown): boolean;
   and(other: ISpecification): ISpecification;
@@ -10638,6 +10639,124 @@ foreach (var currentInvoice in invoiceCollection)
 ```
 
 ## Fluent interface Design Pattern
+
+Fluent interface is an `object-oriented API` whose design relies extensively on m`ethod chaining`. Its goal is `to increase code legibility` by creating a `domain-specific language (DSL)`. 
+
+The term was coined in 2005 by Eric Evans and Martin Fowler.
+
+Design an API to be method chained so that it reads like a DSL. Each method call returns a context through which the next logical method call(s) are made available. 
+
+A fluent interface is normally implemented by using method chaining to implement method cascading (in languages that do not natively support cascading), concretely by having each method return the object to which it is attached, often referred to as `this` or `self`. 
+
+Stated more abstractly, a fluent interface relays the instruction context of a subsequent call in method chaining, where generally the context is 
+
+- Defined through the return value of a called method
+- Self-referential, where the new context is equivalent to the last context
+- Terminated through the return of a void context
+
+Note that a "fluent interface" means more than just method cascading via chaining; it entails designing an interface that reads like a DSL, using other techniques like "nested functions and object scoping".
+
+
+// History
+
+The term "fluent interface" was coined in late 2005, though this overall style of interface dates to the invention of method cascading in Smalltalk in the 1970s, and numerous examples in the 1980s. 
+
+A common example is the `iostream` library in `C++`, which uses the `<<` or `>>` operators for the message passing, sending multiple data to the same object and allowing "manipulators" for other method calls. 
+
+Other early examples include the `Garnet system` (from 1988 in Lisp) and the `Amulet system` (from 1994 in C++) which used this style for object creation and property assignment. 
+
+
+### C++ Example
+
+A common use of the fluent interface in C++ is the standard iostream, which chains overloaded operators. 
+
+```c++
+// Basic definition
+ class GlutApp {
+ private:
+     int w_, h_, x_, y_, argc_, display_mode_;
+     char **argv_;
+     char *title_;
+ public:
+     GlutApp(int argc, char** argv) {
+         argc_ = argc;
+         argv_ = argv;
+     }
+     void setDisplayMode(int mode) {
+         display_mode_ = mode;
+     }
+     int getDisplayMode() {
+         return display_mode_;
+     }
+     void setWindowSize(int w, int h) {
+         w_ = w;
+         h_ = h;
+     }
+     void setWindowPosition(int x, int y) {
+         x_ = x;
+         y_ = y;
+     }
+     void setTitle(const char *title) {
+         title_ = title;
+     }
+     void create(){;}
+ };
+ // Basic usage
+ int main(int argc, char **argv) {
+     GlutApp app(argc, argv);
+     app.setDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_ALPHA|GLUT_DEPTH); // Set framebuffer params
+     app.setWindowSize(500, 500); // Set window params
+     app.setWindowPosition(200, 200);
+     app.setTitle("My OpenGL/GLUT App");
+     app.create();
+ }
+
+ // Fluent wrapper
+ class FluentGlutApp : private GlutApp {
+ public:
+     FluentGlutApp(int argc, char **argv) : GlutApp(argc, argv) {} // Inherit parent constructor
+     FluentGlutApp &withDoubleBuffer() {
+         setDisplayMode(getDisplayMode() | GLUT_DOUBLE);
+         return *this;
+     }
+     FluentGlutApp &withRGBA() {
+         setDisplayMode(getDisplayMode() | GLUT_RGBA);
+         return *this;
+     }
+     FluentGlutApp &withAlpha() {
+         setDisplayMode(getDisplayMode() | GLUT_ALPHA);
+         return *this;
+     }
+     FluentGlutApp &withDepth() {
+         setDisplayMode(getDisplayMode() | GLUT_DEPTH);
+         return *this;
+     }
+     FluentGlutApp &across(int w, int h) {
+         setWindowSize(w, h);
+         return *this;
+     }
+     FluentGlutApp &at(int x, int y) {
+         setWindowPosition(x, y);
+         return *this;
+     }
+     FluentGlutApp &named(const char *title) {
+         setTitle(title);
+         return *this;
+     }
+     // It doesn't make sense to chain after create(), so don't return *this
+     void create() {
+         GlutApp::create();
+     }
+ };
+ // Fluent usage
+ int main(int argc, char **argv) {
+     FluentGlutApp(argc, argv)
+         .withDoubleBuffer().withRGBA().withAlpha().withDepth()
+         .at(200, 200).across(500, 500)
+         .named("My OpenGL/GLUT App")
+         .create();
+ }
+```
 
 ## Servant Design Pattern
 
