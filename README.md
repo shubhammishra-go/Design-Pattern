@@ -10760,6 +10760,167 @@ A common use of the fluent interface in C++ is the standard iostream, which chai
 
 ## Servant Design Pattern
 
+Servant pattern defines an object used to offer some functionality to a group of classes without defining that functionality in each of them. 
+
+Instead of defining that behavior in each class - or when we cannot factor out this behavior in the common parent class - it is defined once in the Servant. 
+
+A Servant is a class whose instance (or even just class) provides methods that take care of a desired service, while objects for which (or with whom) the servant does something, are taken as parameters. 
+
+Collectively, It Define common functionality for a group of classes. The servant pattern is also frequently called `helper class` or `utility class` implementation for a given set of classes. 
+
+The helper classes generally have no objects hence they have all static methods that act upon different kinds of class objects. 
+
+
+// Example
+
+we have a few classes representing geometric objects (`rectangle`, `ellipse`, and `triangle`). 
+
+We can draw these objects on some canvas. When we need to provide a “move” method for these objects we could implement this method in each class, or we can define an interface they implement and then offer the “move” functionality in a servant. 
+
+An interface is defined to ensure that serviced classes have methods that servant needs to provide desired behavior. 
+
+If we continue in our example, we define an Interface “Movable” specifying that every class implementing this interface needs to implement method “getPosition” and “setPosition”. The first method gets the position of an object on a canvas and second one sets the position of an object and draws it on a canvas. Then we define a servant class “MoveServant”, which has two methods “moveTo(Movable movedObject, Position where)” and moveBy(Movable movedObject, int dx, int dy). The Servant class can now be used to move every object which implements the Movable. 
+
+Thus the “moving” code appears in only one class which respects the “Separation of Concerns” rule. 
+
+
+// visitor vs servant vs command patterns
+
+https://stackoverflow.com/questions/31986332/visitor-vs-servant-vs-command-patterns
+
+### Implementations of Servant Design Pattern
+
+There are two ways to implement this design pattern. 
+
+// Way 1
+
+User uses servant to achieve some functionality and passes the serviced objects as parameters.
+
+![alt text](image-79.png)
+
+- User knows the servant (in which case he doesn’t need to know the serviced classes) and sends messages with his requests to the servant instances, passing the serviced objects as parameters.
+    
+- The serviced classes (geometric objects from our example) don’t know about servant, but they implement the “IServiced” interface. The user class just calls the method of servant and passes serviced objects as parameters. This situation is shown on above figure.
+
+
+// Way 2
+
+User requests operations from serviced instances, which then asks servant to do it for them.
+
+![alt text](image-80.png)
+
+- Serviced instances know the servant and the user sends them messages with his requests (in which case she doesn’t have to know the servant). The serviced instances then send messages to the instances of servant, asking for service.
+    
+- On figure 2 is shown opposite situation, where user don’t know about servant class and calls directly serviced classes. Serviced classes then asks servant themselves to achieve desired functionality.
+
+
+### How to implement Servant
+
+- Analyze what behavior servant should take care of. State what methods servant will define and what these methods will need from serviced parameter. By other words, what serviced instance must provide, so that servants methods can achieve their goals.
+
+- Analyze what abilities serviced classes must have, so they can be properly serviced.
+
+- We define an interface, which will enforce implementation of declared methods.
+
+- Define an interface specifying requested behavior of serviced objects. If some instance wants to be served by servant, it must implement this interface.
+
+- Define (or acquire somehow) specified servant (his class).
+
+- Implement defined interface with serviced classes.
+
+
+### Java Example
+
+This simple Java example shows the situation described above. This example is only `illustrative` and will not offer any actual drawing of geometric objects, nor specification of what they look like. 
+
+```java
+// Servant class, offering its functionality to classes implementing
+// Movable Interface
+public class MoveServant {
+	// Method, which will move Movable implementing class to position where
+	public void moveTo(Movable serviced, Position where) {
+		// Do some other stuff to ensure it moves smoothly and nicely, this is
+		// the place to offer the functionality
+		serviced.setPosition(where);
+	}
+
+	// Method, which will move Movable implementing class by dx and dy
+	public void moveBy(Movable serviced, int dx, int dy) {
+		// this is the place to offer the functionality
+		dx += serviced.getPosition().xPosition;
+		dy += serviced.getPosition().yPosition;
+		serviced.setPosition(new Position(dx, dy));
+	}
+}
+
+// Interface specifying what serviced classes needs to implement, to be
+// serviced by servant.
+public interface Movable {
+	public void setPosition(Position p);
+
+	public Position getPosition();
+}
+
+// One of geometric classes
+public class Triangle implements Movable {
+	// Position of the geometric object on some canvas
+	private Position p;
+
+        // Method, which sets position of geometric object
+	public void setPosition(Position p) {
+		this.p = p;
+	}
+
+	// Method, which returns position of geometric object
+	public Position getPosition() {
+		return this.p;
+	}
+}
+
+// One of geometric classes
+public class Ellipse implements Movable {
+	// Position of the geometric object on some canvas
+	private Position p;
+
+	// Method, which sets position of geometric object
+	public void setPosition(Position p) {
+		this.p = p;
+	}
+
+	// Method, which returns position of geometric object
+	public Position getPosition() {
+		return this.p;
+	}
+}
+
+// One of geometric classes
+public class Rectangle implements Movable {
+	// Position of the geometric object on some canvas
+	private Position p;
+
+	// Method, which sets position of geometric object
+	public void setPosition(Position p) {
+		this.p = p;
+	}
+
+	// Method, which returns position of geometric object
+	public Position getPosition() {
+		return this.p;
+	}
+}
+
+// Just a very simple container class for position.
+public class Position {
+	public int xPosition;
+	public int yPosition;
+
+	public Position(int dx, int dy) {
+		xPosition = dx;
+		yPosition = dy;
+	}
+}
+```
+
 ## Scheduled-task Design Pattern
 
 
