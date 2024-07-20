@@ -10784,6 +10784,7 @@ If we continue in our example, we define an Interface “Movable” specifying t
 Thus the “moving” code appears in only one class which respects the “Separation of Concerns” rule. 
 
 
+
 // visitor vs servant vs command patterns
 
 https://stackoverflow.com/questions/31986332/visitor-vs-servant-vs-command-patterns
