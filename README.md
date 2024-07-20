@@ -10924,6 +10924,33 @@ public class Position {
 
 ## Scheduled-task Design Pattern
 
+A scheduled-task pattern is a type of software design pattern used with real-time systems. 
+
+It is not to be confused with the `"scheduler pattern"`. 
+
+While the scheduler pattern delays access to a resource (be it a function, variable, or otherwise) only as long as absolutely needed, `the scheduled-task pattern delays execution until a determined time.` This is important in real-time systems for a variety of reasons. 
+
+A task is scheduled to be performed at a particular interval or clock time (used in real-time computing)
+
+
+// About Scheduler Pattern
+
+In computing, scheduling is the action of assigning resources to perform tasks. The resources may be processors, network links or expansion cards. The tasks may be threads, processes or data flows. 
+
+The scheduling activity is carried out by a process called `scheduler`. 
+
+Schedulers are often designed so as to keep all computer resources busy (as in load balancing), allow multiple users to share system resources effectively, or to achieve a target quality-of-service. 
+
+Scheduling is fundamental to computation itself, and an intrinsic part of the execution model of a computer system; the concept of scheduling makes it possible to have computer multitasking with a single central processing unit (CPU). 
+
+
+// To know more about Scheduled-task Design Pattern
+
+https://cvr.ac.in/ojs/index.php/cvracin/article/download/246/169/
+
+https://learn.microsoft.com/en-us/azure/architecture/patterns/scheduler-agent-supervisor
+
+https://www.ibm.com/docs/en/cabi/1.1.7?topic=interface-scheduling-tasks
 
 
 
